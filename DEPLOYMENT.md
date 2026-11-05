@@ -1,5 +1,11 @@
 # Automatic delivery
 
+The complete pipeline was verified on 2026-11-05 in
+[run 41991425818](https://github.com/mamadbayat-arch/Asan-Download/actions/runs/41991425818):
+Windows application/UI tests, signed packaging, GitHub OIDC deployment and public
+binary verification all passed. UI checks run on a 1920x1080 runner desktop and
+retain their screenshots as the `ui-verification` artifact.
+
 Completed tasks on `main` are validated, committed and pushed with
 `./ci/Complete-Task.ps1 -Message "Describe the finished change"`.
 Use `-StagedOnly` when other unfinished changes share the workspace.

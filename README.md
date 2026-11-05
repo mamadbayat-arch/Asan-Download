@@ -2,7 +2,7 @@
 
 Persian Windows download manager with a browser extension and a small self-hosted website/admin service.
 
-- Desktop app: **1.8.3**, C# / Windows Forms / .NET Framework.
+- Desktop source base: **1.8.3**, C# / Windows Forms / .NET Framework. CI assigns each published build a version newer than the live automatic-update channel.
 - Chrome and Microsoft Edge extension: **1.7.1**, Manifest V3.
 - Website: https://downloader.hamtavar.ir/
 
