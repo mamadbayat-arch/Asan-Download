@@ -7,11 +7,6 @@ using System.Windows.Forms;
 using System.Drawing;
 using MehrDownload;
 class InterfaceTests {
- delegate bool VisitWindow(IntPtr handle,IntPtr state);
- [System.Runtime.InteropServices.DllImport("user32.dll")]static extern bool EnumWindows(VisitWindow visitor,IntPtr state);
- [System.Runtime.InteropServices.DllImport("user32.dll",CharSet=System.Runtime.InteropServices.CharSet.Unicode)]static extern int GetClassName(IntPtr handle,System.Text.StringBuilder name,int capacity);
- [System.Runtime.InteropServices.DllImport("user32.dll")]static extern uint GetWindowThreadProcessId(IntPtr handle,out uint process);
- [System.Runtime.InteropServices.DllImport("user32.dll")]static extern bool PostMessage(IntPtr handle,int message,IntPtr wparam,IntPtr lparam);
  static void Check(bool value,string description){if(!value)throw new Exception(description);Console.WriteLine("PASS: "+description);}
  static object Field(Window window,string name){return typeof(Window).GetField(name,BindingFlags.Instance|BindingFlags.NonPublic).GetValue(window);}
  [STAThread] static void Main(){
@@ -114,12 +109,12 @@ class InterfaceTests {
   }
   var completedBatch=Saved.Load(batchSettings);Check(completedBatch.Queue.Count==0&&completedBatch.History.Count==2,"completed batch queue and both history records survive restart");
   string failedSettings=Path.Combine(root,"failed-batch.json");new Saved{Folder=folder,Queue=new System.Collections.Generic.List<string>{"http://127.0.0.1:18743/plain"}}.Save(failedSettings);
-  using(var failedWindow=new Window(true,failedSettings))using(var dismissWarning=new System.Windows.Forms.Timer{Interval=50}){
+  using(var failedWindow=new Window(true,failedSettings)){
    failedWindow.Show();Application.DoEvents();
-   dismissWarning.Tick+=(s,e)=>EnumWindows((dialog,state)=>{uint process;GetWindowThreadProcessId(dialog,out process);if(process!=(uint)System.Diagnostics.Process.GetCurrentProcess().Id)return true;var kind=new System.Text.StringBuilder(64);GetClassName(dialog,kind,kind.Capacity);if(kind.ToString()=="#32770")PostMessage(dialog,0x111,new IntPtr(1),IntPtr.Zero);return true;},IntPtr.Zero);dismissWarning.Start();
    var failedLink=(TextBox)Field(failedWindow,"link");failedLink.Text="http://127.0.0.1:18743/missing";
    var failedWork=(Task)typeof(Window).GetMethod("Start",BindingFlags.Instance|BindingFlags.NonPublic).Invoke(failedWindow,new object[]{true});
-   DateTime limit=DateTime.UtcNow.AddSeconds(15);while(!failedWork.IsCompleted&&DateTime.UtcNow<limit){Application.DoEvents();Thread.Sleep(10);}Check(failedWork.IsCompleted,"failed batch download returns control after displaying the error");failedWork.GetAwaiter().GetResult();
+   DateTime limit=DateTime.UtcNow.AddSeconds(15);while(!failedWork.IsCompleted&&DateTime.UtcNow<limit){Application.DoEvents();Thread.Sleep(10);}Check(failedWork.IsCompleted,"failed batch download returns control without a blocking native dialog");failedWork.GetAwaiter().GetResult();
+   Check(!String.IsNullOrEmpty(((MehrDownload.StatusStrip)Field(failedWindow,"statusStrip")).Hint)&&!String.IsNullOrEmpty((string)Field(failedWindow,"downloadError")),"download error remains visible in the status strip for retry");
    var failedState=Saved.Load(failedSettings);Check(failedState.Queue.Count==1&&failedState.Queue[0].EndsWith("/plain")&&failedState.History.Count==0,"a failed download leaves later queued links untouched");
    Check(failedState.Url.EndsWith("/missing")&&failedLink.Text.EndsWith("/missing"),"a failed download retains its retry URL and destination");
   }

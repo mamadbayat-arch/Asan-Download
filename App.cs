@@ -100,7 +100,7 @@ namespace MehrDownload {
   Panel sidebarScroll;
   Label sidebarBrand;
   bool compactLayout,updatingLayout;
-  string settingsError;
+  string settingsError,downloadError;
 
   public Window(bool restore) : this(restore,null) {}
   internal Window(bool restore,string settingsPath) {
@@ -165,7 +165,7 @@ namespace MehrDownload {
    var row=new SmoothTableLayout{Dock=DockStyle.Fill,ColumnCount=5,RowCount=1,Margin=Padding.Empty,Padding=new Padding(0)};
    toolbarRow=row;
    row.RowStyles.Add(new RowStyle(SizeType.Absolute,52));
-   row.ColumnStyles.Add(new ColumnStyle(SizeType.Absolute,136));
+   row.ColumnStyles.Add(new ColumnStyle(SizeType.Absolute,156));
    row.ColumnStyles.Add(new ColumnStyle(SizeType.Absolute,128));
    row.ColumnStyles.Add(new ColumnStyle(SizeType.Percent,100));
    row.ColumnStyles.Add(new ColumnStyle(SizeType.Absolute,164));
@@ -454,7 +454,7 @@ namespace MehrDownload {
      composerRow.ColumnStyles.Clear();composerRow.RowStyles.Clear();
      toolbarRow.ColumnCount=5;toolbarRow.RowCount=2;
      composerRow.ColumnCount=5;composerRow.RowCount=2;
-     foreach(int width in compact?new[]{130,130,0,180}:new[]{136,128,0,164,214})toolbarRow.ColumnStyles.Add(new ColumnStyle(width==0?SizeType.Percent:SizeType.Absolute,width==0?100:width));
+     foreach(int width in compact?new[]{150,130,0,180}:new[]{156,128,0,164,214})toolbarRow.ColumnStyles.Add(new ColumnStyle(width==0?SizeType.Percent:SizeType.Absolute,width==0?100:width));
      foreach(int width in compact?new[]{0,108,100,182}:new[]{0,180,108,100,182})composerRow.ColumnStyles.Add(new ColumnStyle(width==0?SizeType.Percent:SizeType.Absolute,width==0?100:width));
      for(int n=0;n<(compact?2:1);n++){toolbarRow.RowStyles.Add(new RowStyle(SizeType.Percent,compact?50:100));composerRow.RowStyles.Add(new RowStyle(SizeType.Percent,compact?50:100));}
      toolbarRow.SetColumnSpan(search,compact?4:1);
@@ -665,18 +665,18 @@ namespace MehrDownload {
     if(File.Exists(target)) {MessageBox.Show(Lang.T("error.exists"),Text);return;}
     Directory.CreateDirectory(Path.GetDirectoryName(target));
     currentUrl=url;currentTarget=target;currentConnections=connections.Value;
+    downloadError=null;
     saved.Url=url;saved.Target=target;saved.Connections=currentConnections;saved.Save(settings);
     previous=0;previousTime=DateTime.UtcNow;downloadSpeed.Reset();
     SetRunning(true);
     await engine.Run(url,target,currentConnections);
     await RunUi(delegate{
      if(engine.Error==null && File.Exists(target)){saved.Complete(target,engine.State);saved.Save(settings);ReloadHistory();ShowToast(Lang.T("toast.completed")+Path.GetFileName(target),false);}
-     if(!closing && engine.Error!=null) {MessageBox.Show(engine.Error, Lang.T("error.generic"),MessageBoxButtons.OK,MessageBoxIcon.Warning);ShowToast(Lang.T("toast.failed"),true);}
     });
    } catch(Exception ex) {failure=ex;}
    await RunUi(delegate{
-    if(failure!=null)MessageBox.Show(failure.Message,Text);
     SetRunning(false);RefreshDownload();
+    if(!closing&&(failure!=null||engine.Error!=null)){downloadError=failure!=null?failure.Message:engine.Error;status.Text=downloadError;RefreshStatusStrip();ShowToast(Lang.T("toast.failed"),true);}
     if(!closing&&failure==null&&engine.Error==null&&!engine.Paused)StartNextQueued();
    });
   }
@@ -800,7 +800,7 @@ namespace MehrDownload {
   void RefreshStatusStrip(){
    statusStrip.SpeedText=CompletedFile.PersianDigits((displayedRate*(saved.SpeedInBits?8:1)/1000000d).ToString("0.00",CultureInfo.InvariantCulture))+(saved.SpeedInBits?" Mb/s":" MB/s");
    statusStrip.BadgeText=CompletedFile.PersianDigits(engine.ActiveConnections.ToString())+" "+Lang.T("status.connections");
-   statusStrip.Hint=engine.Running?engine.Status:(String.IsNullOrEmpty(saved.Folder)?Lang.T("folder.incomplete"):saved.Folder??"");statusStrip.Invalidate();
+   statusStrip.Hint=engine.Running?engine.Status:!String.IsNullOrEmpty(downloadError)?downloadError:(String.IsNullOrEmpty(saved.Folder)?Lang.T("folder.incomplete"):saved.Folder??"");hints.SetToolTip(statusStrip,statusStrip.Hint);statusStrip.Invalidate();
   }
 
   class ColumnAnimator : IAnim {

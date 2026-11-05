@@ -54,7 +54,7 @@ namespace MehrDownload {
    Add("filter.completed","کامل‌شده","Completed");
    Add("filter.queued","در صف","Queued");
    Add("filter.allNav","همهٔ دانلودها","All downloads");
-   Add("filter.queuedNav","در صف دانلود","Queued downloads");
+   Add("filter.queuedNav","در صف دانلود","Queued");
 
    Add("search.placeholder","جست‌وجو در دانلودها…","Search in downloads…");
    Add("search.label","جست‌وجو در دانلودها","Search in downloads");
