@@ -49,6 +49,14 @@ jobs:
           ./ci/Test-ReleaseVersion.ps1
           python -m unittest discover -s ci -p 'test_*.py' -v
           if ($LASTEXITCODE -ne 0) { throw 'Deployment tests failed' }
+      - name: Preserve UI verification screenshots
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: ui-verification
+          path: qa-artifacts/after/
+          if-no-files-found: ignore
+          retention-days: 7
 
   package:
     name: Build publisher-signed package

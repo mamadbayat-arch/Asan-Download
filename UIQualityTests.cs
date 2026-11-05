@@ -26,6 +26,9 @@ class UIQualityTests {
   string settings=Path.Combine(root,"session.json");new Saved{English=true,Folder=root}.Save(settings);
   Lang.English=false;
   using(var w=new Window(true,settings)){
+   // Hosted Windows runners have a small desktop. An explicit tracking maximum
+   // lets the off-screen bitmap tests exercise the same desktop sizes everywhere.
+   w.MaximumSize=new Size(1600,1200);
    w.Show();Pump(650);
    var stableInput=(TextBox)Field(w,"link");var inputHandle=stableInput.Handle;
    for(int resize=0;resize<12;resize++){w.Size=resize%2==0?new Size(960,640):new Size(1280,940);Application.DoEvents();}
@@ -89,7 +92,7 @@ class UIQualityTests {
       Rectangle toggleBounds=w.RectangleToClient(toggle.RectangleToScreen(toggle.ClientRectangle));
       var sponsor=(Control)Field(w,"ad");var sponsorBounds=w.RectangleToClient(sponsor.RectangleToScreen(sponsor.ClientRectangle));
       Check(w.ClientRectangle.Contains(toggleBounds)&&toggleBounds.Bottom<sponsorBounds.Top,label+": sidebar toggle stays above the sponsor strip");
-      Check(w.Size==size,label+": requested window size is supported");
+      Check(w.Size==size,label+": requested window size is supported (actual "+w.Width+"x"+w.Height+")");
       Check(((Control)Field(w,"history")).Height>=100,label+": downloads retain usable vertical space");
       Check(!((Panel)Field(w,"sidebarScroll")).HorizontalScroll.Visible,label+": sidebar scrolls only vertically");
       Capture(w,Path.Combine(pictures,label+".png"));

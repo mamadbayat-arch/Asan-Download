@@ -16,7 +16,8 @@ Persian Windows download manager with a browser extension and a small self-hoste
 - Persian completion dates, active download duration and average speed; clickable MB/s ↔ Mb/s display.
 - Confirmation before browser downloads; automatic interception requires a recent real click or keyboard action. Browser-startup downloads do not generate unsolicited prompts.
 - Free Download Manager inspired interface: dark navy title bar, filterable sidebar, FDM styled download table with per-row progress, speed and remaining time, drop zone, status bar and a sponsored strip that stays pinned to the bottom of the window.
-- Motion everywhere: one shared 60 fps ticker drives the window reveal, staggered sidebar entrance, hover lift and glow on buttons, animated progress bars, count-up statistics, sliding download rows, cross-faded theme switch and rising toasts.
+- Restrained motion: one shared ticker drives hover/focus feedback, progress bars, statistics and toasts. Resizing, language changes and theme changes do not replay entrance animations or cover the window with transition layers.
+- Download failures remain visible in the status strip without blocking the interface; the retry URL and remaining queue are preserved.
 - Bilingual interface: Persian and English can be switched at any time from the side bar. The reading direction, the table columns, the tool bars, the window buttons, the digits and the calendar dates all follow the selected language, and Persian runs with a slightly smaller type size.
 - White and green interface, light and dark variants, embedded Kalameh fonts and Hamtavar branding.
 - Windows startup option, browser native messaging, signed automatic updates, centrally managed advertisements and issue reporting.
