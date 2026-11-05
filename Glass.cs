@@ -197,21 +197,22 @@ namespace MehrDownload {
  public class GlassForm : Form {
   public bool GlassDark;
   internal TitleBar titleBar;
-  int visualUpdates;
+  int visualUpdates;bool redrawSuspended;
   readonly List<Control> suspendedControls=new List<Control>();
   [System.Runtime.InteropServices.DllImport("user32.dll")]static extern IntPtr SendMessage(IntPtr handle,int message,IntPtr wParam,IntPtr lParam);
   protected override CreateParams CreateParams {get{var p=base.CreateParams;p.ExStyle|=0x02000000;return p;}}
   internal void BeginVisualUpdate(){
    if(visualUpdates++!=0)return;
-   if(IsHandleCreated&&Visible)SendMessage(Handle,0x000B,IntPtr.Zero,IntPtr.Zero);
+   redrawSuspended=IsHandleCreated&&Visible;
+   if(redrawSuspended)SendMessage(Handle,0x000B,IntPtr.Zero,IntPtr.Zero);
    SuspendTree(this);
   }
   void SuspendTree(Control root){root.SuspendLayout();suspendedControls.Add(root);foreach(Control child in root.Controls)SuspendTree(child);}
-  protected override void OnHandleCreated(EventArgs e){base.OnHandleCreated(e);if(visualUpdates>0)SendMessage(Handle,0x000B,IntPtr.Zero,IntPtr.Zero);}
+  protected override void OnHandleCreated(EventArgs e){base.OnHandleCreated(e);if(visualUpdates>0&&redrawSuspended)SendMessage(Handle,0x000B,IntPtr.Zero,IntPtr.Zero);}
   internal void EndVisualUpdate(){
    if(visualUpdates==0||--visualUpdates!=0)return;
    try{for(int n=suspendedControls.Count-1;n>=0;n--)if(!suspendedControls[n].IsDisposed)suspendedControls[n].ResumeLayout(true);}
-   finally{suspendedControls.Clear();if(IsHandleCreated)SendMessage(Handle,0x000B,new IntPtr(1),IntPtr.Zero);Invalidate(true);}
+   finally{suspendedControls.Clear();if(redrawSuspended&&IsHandleCreated)SendMessage(Handle,0x000B,new IntPtr(1),IntPtr.Zero);redrawSuspended=false;Invalidate(true);}
   }
   VeilAnim fadeAnimation;
   public GlassForm(){

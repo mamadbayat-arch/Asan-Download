@@ -15,7 +15,7 @@ import urllib.request
 import xml.etree.ElementTree as ET
 import zipfile
 
-REPOSITORY = 'mamadbayat-arch/asan-download'
+REPOSITORY = 'mamadbayat-arch/Asan-Download'
 STABLE = ('downloads/AsanDownload-Windows.zip',
           'downloads/AsanDownload-BrowserExtension.zip',
           'downloads/AsanDownload-Update.exe', 'release.json')

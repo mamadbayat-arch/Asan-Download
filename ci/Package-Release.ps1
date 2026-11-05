@@ -12,6 +12,6 @@ foreach ($name in @('AsanDownload-Update.exe','AsanDownload-Windows.zip','AsanDo
 $sourceArchive = Join-Path $destination 'AsanDownload-Source.zip'
 & git -C $root archive --format=zip "--output=$sourceArchive" $SourceCommit
 if ($LASTEXITCODE -ne 0) { throw 'Source archive failed' }
-$metadata = [ordered]@{ version=$release.version; sourceCommit=$SourceCommit; repository='mamadbayat-arch/asan-download'; runUrl=$RunUrl }
+$metadata = [ordered]@{ version=$release.version; sourceCommit=$SourceCommit; repository='mamadbayat-arch/Asan-Download'; runUrl=$RunUrl }
 [IO.File]::WriteAllText((Join-Path $destination 'deployment.json'), ($metadata | ConvertTo-Json -Compress), [Text.UTF8Encoding]::new($false))
 Write-Output "Prepared signed release $($release.version) from $SourceCommit"
