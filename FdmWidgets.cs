@@ -113,35 +113,19 @@ namespace MehrDownload {
    Color ink=Active?palette.NavTextActive:palette.NavText;
    bool narrow=Width<130;
    float gx=narrow?Width/2f:(Lang.Rtl?Width-26:26),gy=Height/2f;
-   using(var pen=new Pen(ink,1.8f)){pen.StartCap=pen.EndCap=LineCap.Round;pen.LineJoin=LineJoin.Round;
-    switch(Glyph){
-     case 0:g.DrawEllipse(pen,gx-6,gy-6,12,12);g.DrawLine(pen,gx-1,gy,gx+6,gy);break;
-     case 1:g.DrawLine(pen,gx-6,gy,gx+6,gy);g.DrawLine(pen,gx,gy-6,gx,gy+6);break;
-     case 2:g.DrawEllipse(pen,gx-6,gy-6,12,12);g.DrawLines(pen,new[]{new PointF(gx-3,gy),new PointF(gx-1,gy+3),new PointF(gx+4,gy-3)});break;
-     case 3:g.DrawRectangle(pen,gx-6,gy-5,12,10);g.DrawLine(pen,gx-3,gy-1,gx+3,gy-1);g.DrawLine(pen,gx-3,gy+2,gx+2,gy+2);break;
-     case 4:g.DrawEllipse(pen,gx-6,gy-6,12,12);g.DrawArc(pen,gx-6,gy-6,12,12,-40,260);break;
-     case 5:g.DrawRectangle(pen,gx-6,gy-6,12,12);g.DrawLine(pen,gx-4,gy-1,gx+4,gy-1);g.DrawLine(pen,gx-4,gy+2,gx+2,gy+2);break;
-     case 6:g.DrawEllipse(pen,gx-6,gy-6,12,12);g.DrawLine(pen,gx,gy-4,gx,gy);g.DrawLine(pen,gx,gy,gx+3,gy+1);break;
-     case 7:g.DrawRectangle(pen,gx-7,gy-5,14,11);g.DrawLine(pen,gx,gy+6,gx,gy+8);g.DrawLine(pen,gx-4,gy+8,gx+4,gy+8);break;
-     case 8:g.DrawEllipse(pen,gx-4,gy-4,8,8);g.DrawLine(pen,gx+3,gy+3,gx+8,gy+8);break;
-     case 9:g.DrawArc(pen,gx-6,gy-6,12,12,-90,180);g.DrawLine(pen,gx,gy-6,gx,gy+6);break;
-     case 10:g.DrawEllipse(pen,gx-6,gy-6,12,12);g.DrawLine(pen,gx-2,gy-4,gx-2,gy+4);g.DrawLine(pen,gx+2,gy-4,gx+2,gy+4);break;
-     case 11:g.DrawRectangle(pen,gx-6,gy-6,12,12);g.DrawLine(pen,gx-4,gy,gx+4,gy);break;
-     case 12:g.DrawEllipse(pen,gx-7,gy-7,14,14);g.DrawEllipse(pen,gx-3,gy-7,6,14);g.DrawLine(pen,gx-7,gy,gx+7,gy);break;
-    }
-   }
+   Icons.Draw(g,Icons.Navigation(Glyph),gx,gy,ink,20);
    Color textInk=Active?palette.NavTextActive:palette.NavText;
    if(!narrow){
     int reserve=Badge>=0?40:0;
     var textRect=Lang.Rtl?new Rectangle(16+reserve,0,Math.Max(10,Width-56-reserve),Height):new Rectangle(46,0,Math.Max(10,Width-62-reserve),Height);
-    TextRenderer.DrawText(g,Caption,Brand.Font(10.5f,Active?FontStyle.Bold:FontStyle.Regular),textRect,textInk,(Lang.Rtl?TextFormatFlags.Right:TextFormatFlags.Left)|TextFormatFlags.VerticalCenter|(Lang.Rtl?TextFormatFlags.RightToLeft:0)|TextFormatFlags.EndEllipsis|TextFormatFlags.SingleLine|TextFormatFlags.NoPadding);
+    TextRenderer.DrawText(g,Caption,Brand.Font(10.5f,FontStyle.Regular),textRect,textInk,(Lang.Rtl?TextFormatFlags.Right:TextFormatFlags.Left)|TextFormatFlags.VerticalCenter|(Lang.Rtl?TextFormatFlags.RightToLeft:0)|TextFormatFlags.EndEllipsis|TextFormatFlags.SingleLine|TextFormatFlags.NoPadding);
    }
    if(Badge>=0&&!narrow){
     string badge=CompletedFile.PersianDigits(Badge.ToString());
     int w=Math.Max(24,badge.Length*9+14);
     var badgeRect=Lang.Rtl?new RectangleF(14,Height/2f-10,w,20):new RectangleF(Width-14-w,Height/2f-10,w,20);
     Fdm.FillRound(g,badgeRect,10,Active?palette.Accent:palette.Track);
-    TextRenderer.DrawText(g,badge,Brand.Font(9,FontStyle.Bold),Rectangle.Round(badgeRect),Active?Color.White:palette.InkSoft,TextFormatFlags.HorizontalCenter|TextFormatFlags.VerticalCenter|TextFormatFlags.NoPadding);
+    TextRenderer.DrawText(g,badge,Brand.Font(9,FontStyle.Regular),Rectangle.Round(badgeRect),Active?Color.White:palette.InkSoft,TextFormatFlags.HorizontalCenter|TextFormatFlags.VerticalCenter|TextFormatFlags.NoPadding);
    }
    if(Focused&&ShowFocusCues)ControlPaint.DrawFocusRectangle(g,Rectangle.Inflate(ClientRectangle,-6,-4),palette.Accent,palette.Surface);
   }
@@ -182,15 +166,10 @@ namespace MehrDownload {
    using(var pen=new Pen(palette.Line,1f))using(var p=Fdm.Round(r,14))g.DrawPath(pen,p);
    var iconBox=Lang.Rtl?new RectangleF(r.Right-44,r.Top+12,28,28):new RectangleF(r.Left+16,r.Top+12,28,28);
    Fdm.FillRound(g,iconBox,10,Color.FromArgb(38,accent));
-   using(var pen=new Pen(accent,1.8f)){pen.StartCap=pen.EndCap=LineCap.Round;
-    float cx=iconBox.X+iconBox.Width/2f,cy=iconBox.Y+iconBox.Height/2f;
-    if(IconGlyph=="speed"){g.DrawArc(pen,cx-7,cy-7,14,14,-40,260);g.DrawLine(pen,cx,cy-7,cx,cy);g.DrawLine(pen,cx,cy,cx+4,cy+3);}
-    else if(IconGlyph=="count"){g.DrawRectangle(pen,cx-7,cy-6,14,12);g.DrawLine(pen,cx-4,cy-2,cx+4,cy-2);}
-    else if(IconGlyph=="size"){g.DrawEllipse(pen,cx-7,cy-7,14,14);g.DrawLines(pen,new[]{new PointF(cx-3,cy),new PointF(cx-1,cy+3),new PointF(cx+4,cy-3)});}
-   }
+   Icons.Draw(g,IconGlyph=="speed"?IconKind.Gauge:IconGlyph=="count"?IconKind.Check:IconKind.Archive,iconBox.X+iconBox.Width/2f,iconBox.Y+iconBox.Height/2f,accent,20);
    string text=Shown.ToString(Format)+Suffix;
    var valueRect=Lang.Rtl?new RectangleF(r.Left+14,r.Top+10,Math.Max(20,r.Width-84),26):new RectangleF(r.Left+52,r.Top+10,Math.Max(20,r.Width-84),26);
-   TextRenderer.DrawText(g,CompletedFile.PersianDigits(text),Brand.Font(16f,FontStyle.Bold),Rectangle.Round(valueRect),palette.Ink,TextFormatFlags.Left|TextFormatFlags.VerticalCenter|TextFormatFlags.SingleLine|TextFormatFlags.EndEllipsis|TextFormatFlags.NoPadding);
+   TextRenderer.DrawText(g,CompletedFile.PersianDigits(text),Brand.Font(16f,FontStyle.Regular),Rectangle.Round(valueRect),palette.Ink,TextFormatFlags.Left|TextFormatFlags.VerticalCenter|TextFormatFlags.SingleLine|TextFormatFlags.EndEllipsis|TextFormatFlags.NoPadding);
    var captionRect=Lang.Rtl?new RectangleF(r.Left+14,r.Top+37,Math.Max(20,r.Width-84),18):new RectangleF(r.Left+52,r.Top+37,Math.Max(20,r.Width-84),18);
    TextRenderer.DrawText(g,Caption,Brand.Font(9),Rectangle.Round(captionRect),palette.Muted,(Lang.Rtl?TextFormatFlags.Right:TextFormatFlags.Left)|TextFormatFlags.VerticalCenter|(Lang.Rtl?TextFormatFlags.RightToLeft:0)|TextFormatFlags.NoPadding);
    if(Focused&&ShowFocusCues)ControlPaint.DrawFocusRectangle(g,Rectangle.Inflate(ClientRectangle,-5,-5),palette.Accent,palette.Surface);
@@ -262,7 +241,7 @@ namespace MehrDownload {
     bool active=i==Selected;
     if(active){ Fdm.FillRound(g,r,10,palette.Accent); Fdm.Shadow(g,r,10,Color.FromArgb(60,palette.Accent),3,3f); }
     else if(hover>0.01)Fdm.FillRound(g,r,10,Color.FromArgb((int)(hover*200),palette.NavHover));
-    TextRenderer.DrawText(g,Items[i],Brand.Font(10,active?FontStyle.Bold:FontStyle.Regular),Rectangle.Round(r),active?Color.White:palette.InkSoft,TextFormatFlags.HorizontalCenter|TextFormatFlags.VerticalCenter|TextFormatFlags.RightToLeft|TextFormatFlags.NoPadding);
+    TextRenderer.DrawText(g,Items[i],Brand.Font(10,FontStyle.Regular),Rectangle.Round(r),active?Color.White:palette.InkSoft,TextFormatFlags.HorizontalCenter|TextFormatFlags.VerticalCenter|TextFormatFlags.RightToLeft|TextFormatFlags.NoPadding);
    }
   }
  }
@@ -310,7 +289,7 @@ namespace MehrDownload {
     g.DrawLine(pen,plus.Left+9,plus.Y+plus.Height/2f,plus.Right-9,plus.Y+plus.Height/2f);
     g.DrawLine(pen,plus.Left+plus.Width/2f,plus.Y+9,plus.Left+plus.Width/2f,plus.Bottom-9);
    }
-   TextRenderer.DrawText(g,CompletedFile.PersianDigits(Value.ToString()),Brand.Font(12f,FontStyle.Bold),new Rectangle(32,0,Math.Max(10,Width-64),Height),palette.Ink,TextFormatFlags.HorizontalCenter|TextFormatFlags.VerticalCenter|TextFormatFlags.NoPadding);
+   TextRenderer.DrawText(g,CompletedFile.PersianDigits(Value.ToString()),Brand.Font(12f,FontStyle.Regular),new Rectangle(32,0,Math.Max(10,Width-64),Height),palette.Ink,TextFormatFlags.HorizontalCenter|TextFormatFlags.VerticalCenter|TextFormatFlags.NoPadding);
    if(Focused&&ShowFocusCues)ControlPaint.DrawFocusRectangle(g,Rectangle.Inflate(ClientRectangle,-3,-3),palette.Accent,palette.Surface);
   }
  }
@@ -426,7 +405,7 @@ namespace MehrDownload {
     using(var b=new SolidBrush(palette.SurfaceAlt))g.FillRectangle(b,ClientRectangle);
     var table=Parent as DownloadTable;var cells=FdmGrid.Columns(table==null?Width:table.host.ClientSize.Width);
     string[] labels={"",Lang.T("table.name"),Lang.T("table.size"),Lang.T("table.status"),Lang.T("table.speed"),Lang.T("table.date")};
-    var font=Brand.Font(9.5f,FontStyle.Bold);
+    var font=Brand.Font(9.5f,FontStyle.Regular);
     for(int i=0;i<cells.Length;i++){
      if(cells[i].Width<=0||labels[i].Length==0)continue;
      var r=cells[i];r.X+=8;r.Width=Math.Max(1,r.Width-16);r.Height=Height-10;
@@ -506,7 +485,7 @@ namespace MehrDownload {
     else{g.DrawLine(pen,cx-5,cy-5,cx+5,cy+5);g.DrawLine(pen,cx+5,cy-5,cx-5,cy+5);}
    }
    var nameRect=cells[1];nameRect.Offset(8,8);nameRect.Width=Math.Max(1,nameRect.Width-16);nameRect.Height=22;
-   TextRenderer.DrawText(g,Item.Title,Brand.Font(10.5f,FontStyle.Bold),nameRect,palette.Ink,(Lang.Rtl?TextFormatFlags.Right:TextFormatFlags.Left)|TextFormatFlags.VerticalCenter|(Lang.Rtl?TextFormatFlags.RightToLeft:0)|TextFormatFlags.SingleLine|TextFormatFlags.EndEllipsis|TextFormatFlags.NoPadding);
+   TextRenderer.DrawText(g,Item.Title,Brand.Font(10.5f,FontStyle.Regular),nameRect,palette.Ink,(Lang.Rtl?TextFormatFlags.Right:TextFormatFlags.Left)|TextFormatFlags.VerticalCenter|(Lang.Rtl?TextFormatFlags.RightToLeft:0)|TextFormatFlags.SingleLine|TextFormatFlags.EndEllipsis|TextFormatFlags.NoPadding);
    var metaRect=cells[1];metaRect.Offset(8,32);metaRect.Width=Math.Max(1,metaRect.Width-16);metaRect.Height=18;
    TextRenderer.DrawText(g,Item.StatusText??"",Brand.Font(9),metaRect,palette.Muted,(Lang.Rtl?TextFormatFlags.Right:TextFormatFlags.Left)|TextFormatFlags.VerticalCenter|(Lang.Rtl?TextFormatFlags.RightToLeft:0)|TextFormatFlags.SingleLine|TextFormatFlags.EndEllipsis|TextFormatFlags.NoPadding);
    if(cells[2].Width>0){
@@ -531,12 +510,12 @@ namespace MehrDownload {
      }
      if(Item.Kind!="queued"){
       var pct=new Rectangle(Lang.Rtl?r.Left+3:r.Right-46,r.Top-4,44,26);
-      TextRenderer.DrawText(g,CompletedFile.PersianDigits((shown*100).ToString("0")+"%"),Brand.Font(9.5f,FontStyle.Bold),pct,palette.InkSoft,(Lang.Rtl?TextFormatFlags.Right:TextFormatFlags.Left)|TextFormatFlags.VerticalCenter|(Lang.Rtl?TextFormatFlags.RightToLeft:0)|TextFormatFlags.NoPadding);
+      TextRenderer.DrawText(g,CompletedFile.PersianDigits((shown*100).ToString("0")+"%"),Brand.Font(9.5f,FontStyle.Regular),pct,palette.InkSoft,(Lang.Rtl?TextFormatFlags.Right:TextFormatFlags.Left)|TextFormatFlags.VerticalCenter|(Lang.Rtl?TextFormatFlags.RightToLeft:0)|TextFormatFlags.NoPadding);
      }
     }else{
      string text=Item.Kind=="completed"?Lang.T("row.completed"):(Item.StatusText??"");
      Color ink=Item.Kind=="completed"?palette.Success:palette.Muted;
-     TextRenderer.DrawText(g,text,Brand.Font(9.5f,FontStyle.Bold),r,ink,(Lang.Rtl?TextFormatFlags.Right:TextFormatFlags.Left)|TextFormatFlags.VerticalCenter|(Lang.Rtl?TextFormatFlags.RightToLeft:0)|TextFormatFlags.SingleLine|TextFormatFlags.NoPadding);
+     TextRenderer.DrawText(g,text,Brand.Font(9.5f,FontStyle.Regular),r,ink,(Lang.Rtl?TextFormatFlags.Right:TextFormatFlags.Left)|TextFormatFlags.VerticalCenter|(Lang.Rtl?TextFormatFlags.RightToLeft:0)|TextFormatFlags.SingleLine|TextFormatFlags.NoPadding);
     }
    }
    if(cells[4].Width>0){
@@ -629,6 +608,7 @@ namespace MehrDownload {
  // ---------------------------- status strip ----------------------------
  public class StatusStrip : Panel {
   public string SpeedText="",BadgeText="",Hint="";
+  public bool HasProblem;
   public bool Dark;
   public StatusStrip(){Height=40;DoubleBuffered=true;SetStyle(ControlStyles.UserPaint|ControlStyles.AllPaintingInWmPaint|ControlStyles.OptimizedDoubleBuffer,true);}
   protected override void OnPaint(PaintEventArgs e){
@@ -651,19 +631,19 @@ namespace MehrDownload {
     }
    }
    var speedRect=new RectangleF(chip.X+(Lang.Rtl?10:38),chip.Y,chip.Width-46,chip.Height);
-   TextRenderer.DrawText(g,SpeedText,Brand.Font(9.5f,FontStyle.Bold),Rectangle.Round(speedRect),palette.InkSoft,TextFormatFlags.Left|TextFormatFlags.VerticalCenter|TextFormatFlags.NoPadding);
+   TextRenderer.DrawText(g,SpeedText,Brand.Font(9.5f,FontStyle.Regular),Rectangle.Round(speedRect),palette.InkSoft,TextFormatFlags.Left|TextFormatFlags.VerticalCenter|TextFormatFlags.NoPadding);
    float used=chipWidth+28;
    if(BadgeText.Length>0){
     float badgeWidth=Math.Max(64,Measure(g,BadgeText)+28);
     var badge=Lang.Rtl?new RectangleF(chip.X-badgeWidth-8,7,badgeWidth,26):new RectangleF(chip.X+chipWidth+8,7,badgeWidth,26);
     Fdm.FillRound(g,badge,13,Color.FromArgb(38,palette.Success));
     used+=badgeWidth+8;
-    TextRenderer.DrawText(g,BadgeText,Brand.Font(9.5f,FontStyle.Bold),Rectangle.Round(badge),palette.Success,TextFormatFlags.HorizontalCenter|TextFormatFlags.VerticalCenter|(Lang.Rtl?TextFormatFlags.RightToLeft:0)|TextFormatFlags.NoPadding);
+    TextRenderer.DrawText(g,BadgeText,Brand.Font(9.5f,FontStyle.Regular),Rectangle.Round(badge),palette.Success,TextFormatFlags.HorizontalCenter|TextFormatFlags.VerticalCenter|(Lang.Rtl?TextFormatFlags.RightToLeft:0)|TextFormatFlags.NoPadding);
    }
    if(Hint.Length>0){
     int hintWidth=Math.Max(0,Width-(int)used-24);
     var hint=new Rectangle(Lang.Rtl?12:(int)used,0,hintWidth,Height);
-    if(hintWidth>20)TextRenderer.DrawText(g,Hint,Brand.Font(9.5f),hint,palette.Muted,TextFormatFlags.Left|TextFormatFlags.VerticalCenter|TextFormatFlags.EndEllipsis|TextFormatFlags.SingleLine|TextFormatFlags.NoPadding);
+    if(hintWidth>20)TextRenderer.DrawText(g,Hint,Brand.Font(9.5f),hint,HasProblem?palette.Danger:palette.Muted,(HasProblem&&Lang.Rtl?TextFormatFlags.Right|TextFormatFlags.RightToLeft:TextFormatFlags.Left)|TextFormatFlags.VerticalCenter|TextFormatFlags.EndEllipsis|TextFormatFlags.SingleLine|TextFormatFlags.NoPadding);
    }
   }
   float Measure(Graphics g,string text){ if(String.IsNullOrEmpty(text))return 0; SizeF b=g.MeasureString(text,Brand.Font(9.5f)); return b.Width; }

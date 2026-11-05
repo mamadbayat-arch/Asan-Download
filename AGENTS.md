@@ -18,3 +18,5 @@ The user authorizes automatic delivery of completed work in this repository.
 - CI publishes the Windows application and browser extension download artifacts.
   The existing website, server configuration, runtime data and other products on
   the shared server are outside this deployment's scope.
+- Launch local UI previews with `--skip-update` so the source-base version does
+  not download the production binary over a development build.

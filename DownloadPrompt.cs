@@ -22,9 +22,9 @@ namespace MehrDownload {
    var titles=new SmoothTableLayout{Dock=DockStyle.Fill,ColumnCount=1,RowCount=2,Margin=Padding.Empty};
    titles.RowStyles.Add(new RowStyle(SizeType.Percent,58));
    titles.RowStyles.Add(new RowStyle(SizeType.Percent,42));
-   var heading=new Label{Text=queued?Lang.T("prompt.queued"):Lang.T("prompt.question"),Font=Brand.Font(16,FontStyle.Bold),Dock=DockStyle.Fill,TextAlign=Lang.Rtl?ContentAlignment.MiddleRight:ContentAlignment.MiddleLeft,BackColor=Color.Transparent,AutoSize=false};
+   var heading=new Label{Text=queued?Lang.T("prompt.queued"):Lang.T("prompt.question"),Font=Brand.Font(16,FontStyle.Regular),Dock=DockStyle.Fill,TextAlign=ContentAlignment.MiddleLeft,BackColor=Color.Transparent,AutoSize=false};
    titles.Controls.Add(heading,0,0);
-   var subtitle=new Label{Text=Lang.T("prompt.hint"),Font=Brand.Font(9.5f),Dock=DockStyle.Fill,TextAlign=Lang.Rtl?ContentAlignment.MiddleRight:ContentAlignment.MiddleLeft,BackColor=Color.Transparent,AutoSize=false};
+   var subtitle=new Label{Text=Lang.T("prompt.hint"),Font=Brand.Font(9.5f),Dock=DockStyle.Fill,TextAlign=ContentAlignment.MiddleLeft,BackColor=Color.Transparent,AutoSize=false};
    titles.Controls.Add(subtitle,0,1);
    head.Controls.Add(titles,1,0);
    body.Controls.Add(head,0,0);
@@ -32,7 +32,7 @@ namespace MehrDownload {
    var cardRows=new SmoothTableLayout{Dock=DockStyle.Fill,ColumnCount=1,RowCount=2,Margin=Padding.Empty};
    cardRows.RowStyles.Add(new RowStyle(SizeType.Percent,58));
    cardRows.RowStyles.Add(new RowStyle(SizeType.Percent,42));
-   var fileName=new Label{Text=name,Dock=DockStyle.Fill,Font=Brand.Font(13,FontStyle.Bold),TextAlign=ContentAlignment.MiddleCenter,AutoEllipsis=true,BackColor=Color.Transparent,RightToLeft=RightToLeft.No,AutoSize=false};
+   var fileName=new Label{Text=name,Dock=DockStyle.Fill,Font=Brand.Font(13,FontStyle.Regular),TextAlign=ContentAlignment.MiddleCenter,AutoEllipsis=true,BackColor=Color.Transparent,RightToLeft=RightToLeft.No,AutoSize=false};
    cardRows.Controls.Add(fileName,0,0);
    var host=new Label{Text=new Uri(url).Host,Dock=DockStyle.Fill,Font=Brand.Font(9.5f),TextAlign=ContentAlignment.MiddleCenter,BackColor=Color.Transparent,RightToLeft=RightToLeft.No,AutoSize=false};
    cardRows.Controls.Add(host,0,1);
@@ -58,9 +58,9 @@ namespace MehrDownload {
    body.RowStyles.Add(new RowStyle(SizeType.Percent,100));
    body.RowStyles.Add(new RowStyle(SizeType.Absolute,66));
    Controls.Add(body);
-   var heading=new Label{Text=Lang.T("batch.heading"),Font=Brand.Font(15,FontStyle.Bold),Dock=DockStyle.Fill,TextAlign=Lang.Rtl?ContentAlignment.MiddleRight:ContentAlignment.MiddleLeft,BackColor=Color.Transparent,AutoSize=false};
+   var heading=new Label{Text=Lang.T("batch.heading"),Font=Brand.Font(15,FontStyle.Regular),Dock=DockStyle.Fill,TextAlign=ContentAlignment.MiddleLeft,BackColor=Color.Transparent,AutoSize=false};
    body.Controls.Add(heading,0,0);
-   var hint=new Label{Text=Lang.T("batch.hint"),Font=Brand.Font(9.5f),Dock=DockStyle.Fill,TextAlign=Lang.Rtl?ContentAlignment.MiddleRight:ContentAlignment.MiddleLeft,BackColor=Color.Transparent,AutoSize=false};
+   var hint=new Label{Text=Lang.T("batch.hint"),Font=Brand.Font(9.5f),Dock=DockStyle.Fill,TextAlign=ContentAlignment.MiddleLeft,BackColor=Color.Transparent,AutoSize=false};
    body.Controls.Add(hint,0,1);
    var area=new TextBox{Multiline=true,ScrollBars=ScrollBars.Vertical,Dock=DockStyle.Fill,BorderStyle=BorderStyle.None,Font=Brand.Font(11),RightToLeft=RightToLeft.No,AcceptsReturn=true,AccessibleName=Lang.T("batch.title")};
    var box=new GlassPanel{Dock=DockStyle.Fill,Radius=12,Padding=new Padding(12),Margin=Padding.Empty,Elevated=false};

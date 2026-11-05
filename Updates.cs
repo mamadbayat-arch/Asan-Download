@@ -86,10 +86,10 @@ namespace MehrDownload {
    var head=new SmoothTableLayout{Dock=DockStyle.Fill,ColumnCount=2,RowCount=1,Margin=Padding.Empty};
    head.RowStyles.Add(new RowStyle(SizeType.Percent,100));head.ColumnStyles.Add(new ColumnStyle(SizeType.Absolute,52));head.ColumnStyles.Add(new ColumnStyle(SizeType.Percent,100));
    head.Controls.Add(new LogoView{Dock=DockStyle.Fill,Margin=new Padding(0,0,10,0)},0,0);
-   var heading=new Label{Text=Lang.T("update.heading"),Font=Brand.Font(16,FontStyle.Bold),Dock=DockStyle.Fill,TextAlign=Lang.Rtl?ContentAlignment.MiddleRight:ContentAlignment.MiddleLeft,BackColor=Color.Transparent,AutoSize=false};
+   var heading=new Label{Text=Lang.T("update.heading"),Font=Brand.Font(16,FontStyle.Regular),Dock=DockStyle.Fill,TextAlign=ContentAlignment.MiddleLeft,BackColor=Color.Transparent,AutoSize=false};
    head.Controls.Add(heading,1,0);
    body.Controls.Add(head,0,0);
-   message.Text=Lang.T("update.checking");message.Font=Brand.Font(10.5f);message.Dock=DockStyle.Fill;message.TextAlign=Lang.Rtl?ContentAlignment.MiddleRight:ContentAlignment.MiddleLeft;message.BackColor=Color.Transparent;message.AutoSize=false;body.Controls.Add(message,0,1);
+   message.Text=Lang.T("update.checking");message.Font=Brand.Font(10.5f);message.Dock=DockStyle.Fill;message.TextAlign=ContentAlignment.MiddleLeft;message.BackColor=Color.Transparent;message.AutoSize=false;body.Controls.Add(message,0,1);
    var bar=new GlassPanel{Dock=DockStyle.Fill,Radius=12,Padding=new Padding(10),Margin=Padding.Empty};
    progress.Dock=DockStyle.Fill;progress.Maximum=1000;bar.Controls.Add(progress);body.Controls.Add(bar,0,3);
    proceed.Text=Lang.T("update.enter");proceed.Font=Brand.Font(11);proceed.Dock=DockStyle.Right;proceed.Width=150;body.Controls.Add(proceed,0,4);proceed.Click+=(s,e)=>{proceedRequested=true;cancellation.Cancel();Close();};

@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "آسان دانلود",
-  "version": "1.7.1",
+  "version": "1.7.2",
   "key": "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAp6CIo/OIAcE/g/0piR6O/sKvD/QZjKWADPaHom0JoaamNylHb942Vni7vy/LLwHmSTUprHXGIT35cGr9AYLSUk10ptpVksVxmTlvgph2Vr6Hq7wdjSZxOIIU1O7TqPxj2atIXKq0fjWfez73RFoFbOY18kSdMqvAZTikJuvIv1mLvT8iGiAe9pJ9LjvnR4fNQ4qxIFFU15UABJrKLuNjRA9sDjODnMv6YaIQUkATKkG1fbHgN669PXYTwHTmlBqtMf2+Xu538s+cYnXokmLp0hR+peW9jEFknAaeCDKLhX8VgIQ12/Z8RptuPTtu1PYmxUu93ZlG3qyNwIw4ml9g0QIDAQAB",
   "permissions": [
     "downloads",

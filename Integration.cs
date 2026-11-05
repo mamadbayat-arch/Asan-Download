@@ -19,6 +19,7 @@ namespace MehrDownload {
    using(var input=asm.GetManifestResourceStream("NativeHost.exe"))using(var output=File.Create(Path.Combine(dir,"NativeHost.exe")))input.CopyTo(output);
    string extension=Path.Combine(dir,"BrowserExtension");Directory.CreateDirectory(extension);
    foreach(string name in new[]{"manifest.json","background.js","intent.js","popup.html","popup.js","icon128.png"})using(var input=asm.GetManifestResourceStream("Browser."+name))using(var output=File.Create(Path.Combine(extension,name)))input.CopyTo(output);
+   foreach(string name in new[]{"Vazir-Regular.ttf","Vazir-OFL.txt"})using(var input=asm.GetManifestResourceStream(name))using(var output=File.Create(Path.Combine(extension,name)))input.CopyTo(output);
    var manifest=new JavaScriptSerializer().Deserialize<System.Collections.Generic.Dictionary<string,object>>(File.ReadAllText(Path.Combine(extension,"manifest.json")));
    string key=(string)manifest["key"];byte[] hash;using(var sha=System.Security.Cryptography.SHA256.Create())hash=sha.ComputeHash(Convert.FromBase64String(key));string id="";for(int n=0;n<16;n++)id+=(char)('a'+(hash[n]>>4))+""+(char)('a'+(hash[n]&15));
    string host=Path.Combine(dir,"native-host.json");File.WriteAllText(host,new JavaScriptSerializer().Serialize(new{name="ir.hamtavar.asandownload",description="Asan Download browser bridge",path=Path.Combine(dir,"NativeHost.exe"),type="stdio",allowed_origins=new[]{"chrome-extension://"+id+"/"}}));

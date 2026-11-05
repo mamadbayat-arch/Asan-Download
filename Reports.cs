@@ -36,26 +36,27 @@ namespace MehrDownload {
    var body=new SmoothTableLayout{Dock=DockStyle.Fill,Padding=new Padding(26,16,26,22),ColumnCount=1,RowCount=10};
    foreach(int h in new[]{40,24,42,24,42,24,120,24,42,64})body.RowStyles.Add(new RowStyle(SizeType.Absolute,h));
    Controls.Add(body);
-   body.Controls.Add(new Label{Text=Lang.T("report.heading"),Font=Brand.Font(16,FontStyle.Bold),Dock=DockStyle.Fill,TextAlign=Lang.Rtl?ContentAlignment.MiddleRight:ContentAlignment.MiddleLeft,BackColor=Color.Transparent,AutoSize=false},0,0);
-   body.Controls.Add(new Label{Text=Lang.T("report.category"),Dock=DockStyle.Fill,TextAlign=Lang.Rtl?ContentAlignment.MiddleRight:ContentAlignment.MiddleLeft,BackColor=Color.Transparent,Font=Brand.Font(9.5f),AutoSize=false},0,1);
+   body.Controls.Add(new Label{Text=Lang.T("report.heading"),Font=Brand.Font(16,FontStyle.Regular),Dock=DockStyle.Fill,TextAlign=ContentAlignment.MiddleLeft,BackColor=Color.Transparent,AutoSize=false},0,0);
+   body.Controls.Add(new Label{Text=Lang.T("report.category"),Dock=DockStyle.Fill,TextAlign=ContentAlignment.MiddleLeft,BackColor=Color.Transparent,Font=Brand.Font(9.5f),AutoSize=false},0,1);
    var category=new ComboBox{Dock=DockStyle.Fill,DropDownStyle=ComboBoxStyle.DropDownList,FlatStyle=FlatStyle.Flat,Font=Brand.Font(10.5f)};category.Items.AddRange(new object[]{Lang.T("report.category.ui"),Lang.T("report.category.download"),Lang.T("report.category.update"),Lang.T("report.category.other")});category.SelectedIndex=0;body.Controls.Add(category,0,2);
    category.DrawMode=DrawMode.OwnerDrawFixed;category.ItemHeight=26;
    category.DrawItem+=(s,e)=>{if(e.Index<0)return;var palette=Fdm.Of(GlassDark);bool selected=(e.State&DrawItemState.Selected)!=0;using(var brush=new SolidBrush(selected?palette.AccentSoft:palette.Surface))e.Graphics.FillRectangle(brush,e.Bounds);var bounds=Rectangle.Inflate(e.Bounds,-6,0);TextRenderer.DrawText(e.Graphics,category.Items[e.Index].ToString(),category.Font,bounds,palette.Ink,TextFormatFlags.VerticalCenter|TextFormatFlags.SingleLine|TextFormatFlags.EndEllipsis|(Lang.Rtl?TextFormatFlags.Right|TextFormatFlags.RightToLeft:TextFormatFlags.Left));e.DrawFocusRectangle();};
-   body.Controls.Add(new Label{Text=Lang.T("report.titleField"),Dock=DockStyle.Fill,TextAlign=Lang.Rtl?ContentAlignment.MiddleRight:ContentAlignment.MiddleLeft,BackColor=Color.Transparent,Font=Brand.Font(9.5f),AutoSize=false},0,3);
+   body.Controls.Add(new Label{Text=Lang.T("report.titleField"),Dock=DockStyle.Fill,TextAlign=ContentAlignment.MiddleLeft,BackColor=Color.Transparent,Font=Brand.Font(9.5f),AutoSize=false},0,3);
    var title=new TextBox{Dock=DockStyle.Fill,MaxLength=120,Font=Brand.Font(10.5f),BorderStyle=BorderStyle.FixedSingle};body.Controls.Add(title,0,4);
-   body.Controls.Add(new Label{Text=Lang.T("report.body"),Dock=DockStyle.Fill,TextAlign=Lang.Rtl?ContentAlignment.MiddleRight:ContentAlignment.MiddleLeft,BackColor=Color.Transparent,Font=Brand.Font(9.5f),AutoSize=false},0,5);
+   body.Controls.Add(new Label{Text=Lang.T("report.body"),Dock=DockStyle.Fill,TextAlign=ContentAlignment.MiddleLeft,BackColor=Color.Transparent,Font=Brand.Font(9.5f),AutoSize=false},0,5);
    var description=new TextBox{Dock=DockStyle.Fill,Multiline=true,MaxLength=4000,ScrollBars=ScrollBars.Vertical,Font=Brand.Font(10.5f),BorderStyle=BorderStyle.FixedSingle};body.Controls.Add(description,0,6);
-   body.Controls.Add(new Label{Text=Lang.T("report.contact"),Dock=DockStyle.Fill,TextAlign=Lang.Rtl?ContentAlignment.MiddleRight:ContentAlignment.MiddleLeft,BackColor=Color.Transparent,Font=Brand.Font(9.5f),AutoSize=false},0,7);
+   body.Controls.Add(new Label{Text=Lang.T("report.contact"),Dock=DockStyle.Fill,TextAlign=ContentAlignment.MiddleLeft,BackColor=Color.Transparent,Font=Brand.Font(9.5f),AutoSize=false},0,7);
    var contact=new TextBox{Dock=DockStyle.Fill,MaxLength=160,RightToLeft=RightToLeft.No,Font=Brand.Font(10.5f),BorderStyle=BorderStyle.FixedSingle};body.Controls.Add(contact,0,8);
    var foot=new SmoothTableLayout{Dock=DockStyle.Fill,ColumnCount=2,RowCount=1,Margin=Padding.Empty};
    foot.RowStyles.Add(new RowStyle(SizeType.Absolute,64));
    foot.ColumnStyles.Add(new ColumnStyle(SizeType.Absolute,170));foot.ColumnStyles.Add(new ColumnStyle(SizeType.Percent,100));
    var send=new GlassButton{Text=Lang.T("report.send"),Primary=true,Dock=DockStyle.Fill,Height=44,MaximumSize=new Size(0,48),Margin=new Padding(0,8,8,8)};
-   var note=new Label{Text=Lang.T("report.version")+ReleaseInfo.Version+" • "+Lang.T("report.private"),AutoSize=false,Dock=DockStyle.Top,Height=64,TextAlign=Lang.Rtl?ContentAlignment.MiddleRight:ContentAlignment.MiddleLeft,Font=Brand.Font(9),Margin=new Padding(10,0,0,0),BackColor=Color.Transparent};
+   var note=new Label{Text=Lang.T("report.version")+ReleaseInfo.Version+" • "+Lang.T("report.private"),AutoSize=false,Dock=DockStyle.Top,Height=64,TextAlign=ContentAlignment.MiddleLeft,Font=Brand.Font(9),Margin=new Padding(10,0,0,0),BackColor=Color.Transparent};
    foot.Controls.Add(send,0,0);foot.Controls.Add(note,1,0);body.Controls.Add(foot,0,9);
-    send.Click+=async(s,e)=>{if(String.IsNullOrWhiteSpace(title.Text)||String.IsNullOrWhiteSpace(description.Text)){MessageBox.Show(this,Lang.T("report.required"),Text);return;}
+    bool submitted=false;
+    send.Click+=async(s,e)=>{if(submitted){Close();return;}if(String.IsNullOrWhiteSpace(title.Text)||String.IsNullOrWhiteSpace(description.Text)){note.Text=Lang.T("report.required");note.ForeColor=Fdm.Of(GlassDark).Danger;title.Focus();return;}
     var report=new ProblemReport{category=category.Text,title=title.Text.Trim(),description=description.Text.Trim(),contact=contact.Text.Trim()};
-    try{ProblemReports.Enqueue(report);send.Enabled=false;note.Text=Lang.T("report.sending");bool sent=await ProblemReports.Flush(report.id);MessageBox.Show(this,sent?Lang.T("report.sent"):Lang.T("report.saved"),Text);Close();}catch(Exception ex){MessageBox.Show(this,ex.Message,Text);send.Enabled=true;}
+    try{ProblemReports.Enqueue(report);send.Enabled=false;note.Text=Lang.T("report.sending");bool sent=await ProblemReports.Flush(report.id);if(IsDisposed)return;note.Text=sent?Lang.T("report.sent"):Lang.T("report.saved");note.ForeColor=Fdm.Of(GlassDark).Success;submitted=true;send.Text=Lang.T("action.close");send.Enabled=true;}catch(Exception ex){if(IsDisposed)return;note.Text=ex.Message;note.ForeColor=Fdm.Of(GlassDark).Danger;send.Enabled=true;}
     };
    FdmTheme.Apply(this,this,false);
   }

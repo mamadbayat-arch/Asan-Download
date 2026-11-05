@@ -149,8 +149,9 @@ namespace MehrDownload {
   [DllImport("user32.dll",CharSet=CharSet.Unicode)] static extern IntPtr SendMessage(IntPtr handle,int message,IntPtr wparam,string text);
   public static void Cue(TextBox box,string text){ if(box!=null&&box.IsHandleCreated)SendMessage(box.Handle,0x1501,new IntPtr(1),text); }
   public static Font Font(float size,FontStyle style=FontStyle.Regular) {
+   style=FontStyle.Regular;
    if(!loaded){
-    foreach(string name in new[]{"Kalameh-Regular.ttf","Kalameh-Bold.ttf"}){
+    foreach(string name in new[]{"Vazir-Regular.ttf"}){
      using(var stream=Assembly.GetExecutingAssembly().GetManifestResourceStream(name)){
       if(stream==null)continue;
       byte[] bytes=new byte[stream.Length];int read=0;while(read<bytes.Length){int n=stream.Read(bytes,read,bytes.Length-read);if(n<=0)break;read+=n;}
@@ -359,7 +360,7 @@ namespace MehrDownload {
    var palette=Fdm.Of(owner.GlassDark);
    if(Lang.Rtl)Brand.Logo(g,new Rectangle(Width-38,11,24,24));
    else Brand.Logo(g,new Rectangle(14,11,24,24));
-   TextRenderer.DrawText(g,owner.Text,Brand.Font(12f,FontStyle.Bold),new Rectangle(160,0,Math.Max(1,Width-320),Height),palette.Ink,TextFormatFlags.HorizontalCenter|TextFormatFlags.VerticalCenter|TextFormatFlags.EndEllipsis|TextFormatFlags.SingleLine|(Lang.Rtl?TextFormatFlags.RightToLeft:0));
+   TextRenderer.DrawText(g,owner.Text,Brand.Font(12f,FontStyle.Regular),new Rectangle(160,0,Math.Max(1,Width-320),Height),palette.Ink,TextFormatFlags.HorizontalCenter|TextFormatFlags.VerticalCenter|TextFormatFlags.EndEllipsis|TextFormatFlags.SingleLine|(Lang.Rtl?TextFormatFlags.RightToLeft:0));
   }
  }
 
@@ -454,34 +455,7 @@ namespace MehrDownload {
    g.Restore(state);
    if(Focused&&ShowFocusCues){using(var pen=new Pen(Color.FromArgb(120,palette.Accent),1.6f))g.DrawRectangle(pen,3,3,Width-7,Height-7);}
   }
-  void DrawGlyph(Graphics g,Color ink,float x,float y){
-   using(var pen=new Pen(ink,1.7f)){pen.StartCap=pen.EndCap=LineCap.Round;pen.LineJoin=LineJoin.Round;
-    switch(Glyph){
-     case 1:g.DrawLine(pen,x-6,y,x+6,y);g.DrawLine(pen,x,y-6,x,y+6);break;
-     case 2:g.DrawRectangle(pen,x-7,y-6,14,11);g.DrawLine(pen,x-4,y-1,x+4,y-1);g.DrawLine(pen,x-4,y+2,x+2,y+2);break;
-     case 3:g.DrawLines(pen,new[]{new PointF(x,y-7),new PointF(x,y+5)});g.DrawLines(pen,new[]{new PointF(x-4,y+1),new PointF(x,y+6),new PointF(x+4,y+1)});break;
-     case 4:g.DrawEllipse(pen,x-7,y-7,14,14);g.DrawArc(pen,x-7,y-7,14,14,-40,260);break;
-     case 5:g.DrawEllipse(pen,x-7,y-7,14,14);g.DrawArc(pen,x-7,y-7,14,14,60,220);g.DrawLine(pen,x,y-7,x,y-1);break;
-     case 6:g.DrawRectangle(pen,x-7,y-7,14,12);g.DrawLine(pen,x-4,y+5,x-6,y+9);g.DrawLine(pen,x,y-4,x,y);break;
-     case 7:g.DrawRectangle(pen,x-8,y-6,16,11);g.DrawLine(pen,x,y+5,x,y+8);g.DrawLine(pen,x-4,y+8,x+4,y+8);break;
-     case 8:g.DrawEllipse(pen,x-4,y-4,8,8);g.DrawLine(pen,x+3,y+3,x+8,y+8);break;
-     case 9:g.DrawLines(pen,new[]{new PointF(x-4,y-2),new PointF(x,y+3),new PointF(x+4,y-2)});break;
-     case 10:g.DrawLine(pen,x-3,y-5,x-3,y+5);g.DrawLine(pen,x+3,y-5,x+3,y+5);break;
-     case 11:using(var play=new SolidBrush(ink))g.FillPolygon(play,new[]{new PointF(x-3,y-6),new PointF(x+5,y),new PointF(x-3,y+6)});break;
-     case 12:for(int n=-1;n<=1;n++)g.DrawEllipse(pen,x-1,y+n*4-1,2,2);break;
-     case 13:g.DrawArc(pen,x-7,y-7,14,14,40,280);g.DrawLines(pen,new[]{new PointF(x+5,y-7),new PointF(x+6,y-2),new PointF(x+1,y-3)});break;
-     case 14:g.DrawEllipse(pen,x-7,y-7,14,14);g.DrawLines(pen,new[]{new PointF(x-3,y),new PointF(x-1,y+3),new PointF(x+4,y-3)});break;
-     case 15:g.DrawEllipse(pen,x-7,y-7,14,14);g.DrawLine(pen,x,y-4,x,y);g.DrawLine(pen,x,y,x+3,y+1);break;
-     case 16:g.DrawLines(pen,new[]{new PointF(x-5,y-4),new PointF(x+5,y-4)});g.DrawLines(pen,new[]{new PointF(x-5,y+1),new PointF(x+3,y+1)});g.DrawLines(pen,new[]{new PointF(x-5,y+6),new PointF(x+1,y+6)});break;
-     case 17:g.DrawLines(pen,new[]{new PointF(x-6,y-5),new PointF(x+6,y-5)});g.DrawLines(pen,new[]{new PointF(x-6,y),new PointF(x+3,y)});g.DrawLines(pen,new[]{new PointF(x-6,y+5),new PointF(x,y+5)});break;
-     case 18:g.DrawLine(pen,x-6,y-5,x+6,y-5);g.DrawLine(pen,x-6,y,x+6,y);g.DrawLine(pen,x-6,y+5,x+6,y+5);break;
-     case 19:g.DrawLines(pen,new[]{new PointF(x-4,y-6),new PointF(x-4,y+6),new PointF(x+5,y+6),new PointF(x+5,y-1),new PointF(x+1,y-1),new PointF(x+1,y+6)});break;
-     case 20:g.DrawRectangle(pen,x-7,y-6,14,12);g.DrawLines(pen,new[]{new PointF(x-3,y+2),new PointF(x+3,y-4)});break;
-     case 21:g.DrawArc(pen,x-7,y-7,14,14,-90,180);g.DrawLine(pen,x,y-7,x,y+7);break;
-     case 22:g.DrawLines(pen,new[]{new PointF(x-7,y-6),new PointF(x+7,y-6),new PointF(x+7,y-1),new PointF(x-7,y-1),new PointF(x-7,y+3),new PointF(x+7,y+3)});g.DrawLine(pen,x-7,y+7,x+7,y+7);break;
-    }
-   }
-  }
+  void DrawGlyph(Graphics g,Color ink,float x,float y){Icons.Draw(g,Icons.Button(Glyph),x,y,ink,20);}
  }
 
  public class GlassProgress : AnimatedControl {

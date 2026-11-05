@@ -9,8 +9,8 @@ namespace MehrDownload {
  static class Lang {
   public static bool English=false;
   public static bool Rtl { get { return !English; } }
-  // Persian glyphs of the Kalameh face read larger than Latin ones, so Persian runs a touch smaller.
-  public const float PersianScale=0.88f;
+  // Keep the same regular Vazir metrics when switching languages.
+  public const float PersianScale=1f;
   public static float Scale { get { return English?1f:PersianScale; } }
 
   static readonly Dictionary<string,string[]> table=new Dictionary<string,string[]>();

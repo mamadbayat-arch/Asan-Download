@@ -25,7 +25,7 @@ class InterfaceTests {
   using(var window=new Window(true,settings)){
    window.Show();Application.DoEvents();
    Check(window.Text=="آسان دانلود" && window.Icon!=null,"new app name and icon applied");
-   Check(window.Font.Name.Contains("Kalameh"),"Kalameh font loaded from embedded resources");
+   Check(window.Font.Name.Contains("Vazir")&&!window.Font.Bold,"regular Vazir font loaded from embedded resources");
    Check(!window.RightToLeftLayout,"native window mirroring disabled to prevent clipped sidebar and broken painting");
    Check(window.FormBorderStyle==FormBorderStyle.None,"custom modern title bar replaces native window buttons");
    var bar=(TitleBar)typeof(GlassForm).GetField("titleBar",BindingFlags.Instance|BindingFlags.NonPublic).GetValue(window);

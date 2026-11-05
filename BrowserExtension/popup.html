@@ -1,19 +1,19 @@
-<!doctype html><html lang="fa" dir="rtl"><meta charset="utf-8"><title>آسان دانلود</title><style>
-:root{--ink:#132a3e;--muted:#5a6b7d;--accent:#16a4fa;--accent-2:#0b84d6;--line:#e6ecf2;--paper:#f4f7fb;--nav:#132a3e}
+<!doctype html><html lang="fa" dir="rtl"><meta charset="utf-8"><title>آسان دانلود</title><style>@font-face{font-family:Vazir;src:url("Vazir-Regular.ttf") format("truetype");font-weight:400}
+:root{--ink:#132a3e;--muted:#5a6b7d;--accent:#107c65;--accent-2:#0d6654;--line:#dbe7e3;--paper:#f4f8f7;--nav:#132a3e}
 *{box-sizing:border-box}
-body{width:300px;margin:0;padding:0;background:var(--paper);color:var(--ink);font:14px/1.6 "Segoe UI",Tahoma,sans-serif}
-.bar{display:flex;align-items:center;gap:10px;padding:14px 16px;background:linear-gradient(160deg,#0d2236,#132a3e 60%,#1a3d5c);color:#fff}
+body{width:300px;margin:0;padding:0;background:var(--paper);color:var(--ink);font:14px/1.6 Vazir,"Segoe UI",Tahoma,sans-serif}
+.bar{display:flex;align-items:center;gap:10px;padding:14px 16px;background:linear-gradient(160deg,#0f1a17,#16251f 60%,#1f3d32);color:#fff}
 .bar img{width:30px;height:30px;border-radius:9px;background:#fff;padding:2px}
-.bar strong{font-size:15px;letter-spacing:.2px}
-.lang{margin-inline-start:auto;font:700 12px "Segoe UI",Tahoma,sans-serif;color:#7dd3fc;background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.18);border-radius:9px;padding:4px 10px;cursor:pointer}
+.bar strong{font-size:15px;font-weight:400}
+.lang{margin-inline-start:auto;font:400 12px Vazir,"Segoe UI",Tahoma,sans-serif;color:#9ddcc5;background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.18);border-radius:9px;padding:4px 10px;cursor:pointer}
 .lang:hover{background:rgba(255,255,255,.2)}
 .body{padding:16px}
 p{margin:0 0 12px;color:var(--muted);font-size:12.5px}
-label{display:flex;align-items:center;gap:9px;margin:0 0 12px;font-weight:600;cursor:pointer;padding:10px 12px;background:#fff;border:1px solid var(--line);border-radius:12px;transition:.2s}
-label:hover{border-color:var(--accent);box-shadow:0 4px 14px rgba(22,164,250,.12)}
+label{display:flex;align-items:center;gap:9px;margin:0 0 12px;font-weight:400;cursor:pointer;padding:10px 12px;background:#fff;border:1px solid var(--line);border-radius:12px;transition:.2s}
+label:hover{border-color:var(--accent);box-shadow:0 4px 14px rgba(16,124,101,.12)}
 input[type=checkbox]{width:17px;height:17px;accent-color:var(--accent)}
-button{width:100%;padding:11px;border:0;border-radius:12px;background:linear-gradient(135deg,var(--accent),var(--accent-2));color:#fff;font-weight:700;cursor:pointer;box-shadow:0 8px 18px rgba(22,164,250,.3);transition:.2s}
-button:hover{transform:translateY(-1px);box-shadow:0 12px 24px rgba(22,164,250,.4)}
+button{font-family:inherit;width:100%;padding:11px;border:0;border-radius:12px;background:linear-gradient(135deg,var(--accent),var(--accent-2));color:#fff;font-weight:400;cursor:pointer;box-shadow:0 8px 18px rgba(16,124,101,.3);transition:.2s}
+button:hover{transform:translateY(-1px);box-shadow:0 12px 24px rgba(16,124,101,.4)}
 button:active{transform:translateY(0)}
 button:disabled{opacity:.6;cursor:default;transform:none;box-shadow:none}
 #status{padding:10px 12px;border-radius:12px;background:#fff;border:1px solid var(--line);font-size:12.5px;color:var(--muted);margin:12px 0 0;transition:.25s}
@@ -27,5 +27,5 @@ small{display:block;margin-top:12px;color:#9aa7b4;font-size:11px;text-align:cent
 <p id="hint">فقط دانلودهایی که با کلیک یا کشیدن شما آغاز می‌شوند به برنامه فرستاده می‌شوند.</p>
 <button id="connect">بررسی اتصال به برنامه</button>
 <p id="status">برای شروع، دکمهٔ بررسی اتصال را بزنید.</p>
-<small id="version">نسخهٔ افزونه: ۱.۷.۱</small>
+<small id="version">نسخهٔ افزونه: ۱.۷.۲</small>
 </div><script src="popup.js"></script></body></html>

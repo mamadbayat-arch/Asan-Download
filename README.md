@@ -3,7 +3,7 @@
 Persian Windows download manager with a browser extension and a small self-hosted website/admin service.
 
 - Desktop source base: **1.8.3**, C# / Windows Forms / .NET Framework. CI assigns each published build a version newer than the live automatic-update channel.
-- Chrome and Microsoft Edge extension: **1.7.1**, Manifest V3.
+- Chrome and Microsoft Edge extension: **1.7.2**, Manifest V3.
 - Website: https://downloader.hamtavar.ir/
 
 ## Features
@@ -19,7 +19,8 @@ Persian Windows download manager with a browser extension and a small self-hoste
 - Restrained motion: one shared ticker drives hover/focus feedback, progress bars, statistics and toasts. Resizing, language changes and theme changes do not replay entrance animations or cover the window with transition layers.
 - Download failures remain visible in the status strip without blocking the interface; the retry URL and remaining queue are preserved.
 - Bilingual interface: Persian and English can be switched at any time from the side bar. The reading direction, the table columns, the tool bars, the window buttons, the digits and the calendar dates all follow the selected language, and Persian runs with a slightly smaller type size.
-- White and green interface, light and dark variants, embedded Kalameh fonts and Hamtavar branding.
+- White and green interface, light and dark variants, embedded Vazir Regular and a shared outline icon system. Typography uses regular weight in both languages.
+- Eleven product advertisements rotate every 12 seconds with their original logos and one-line Persian/English descriptions. Rotation pauses on hover or keyboard focus. Jaryan and Hamtavar Personal have no link buttons until public destinations are approved.
 - Windows startup option, browser native messaging, signed automatic updates, centrally managed advertisements and issue reporting.
 
 ## Build and run
@@ -33,10 +34,13 @@ Use Windows 10/11 with .NET Framework 4.8, PowerShell and Node.js 22 or later. T
 
 ```powershell
 ./Build.ps1
-./MehrDownload.exe
+./MehrDownload.exe --skip-update
 ```
 
 To install for the current Windows user, run `Install.cmd` after building. The native messaging host and extension files are installed with the app.
+
+Local previews use `--skip-update` because CI assigns the published version;
+the committed assembly version is only the source base.
 
 In Chrome/Edge, enable Developer mode on the extensions page and choose **Load unpacked** for the installed `BrowserExtension` folder. After updating extension files, click **Reload** and refresh the download webpage. The extension folder also includes a Persian illustrated guide.
 

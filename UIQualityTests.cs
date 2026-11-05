@@ -20,6 +20,19 @@ class UIQualityTests {
  [STAThread] static int Main(string[] args){
   Application.EnableVisualStyles();Application.SetCompatibleTextRenderingDefault(false);
   Check(ReleaseInfo.Version==typeof(Window).Assembly.GetName().Version.ToString(3),"reported/update version matches the built application");
+  Check(Brand.Font(12,FontStyle.Bold).Name.Contains("Vazir")&&!Brand.Font(12,FontStyle.Bold).Bold,"all typography uses embedded Vazir Regular even when a caller requests emphasis");
+  using(var carousel=new AdPlacement(false)){
+   var products=new HashSet<string>();
+   for(int n=0;n<11;n++){
+    var current=(Advertisement)Field(carousel,"ad");products.Add(current.productId);
+    using(var logo=AdPlacement.Embedded(current.logoResource))Check(logo.Width>0&&logo.Height>0,"product logo is embedded: "+current.productId);
+    Check(!String.IsNullOrEmpty(current.description)&&!String.IsNullOrEmpty(current.descriptionEn),"product has one-line Persian and English copy: "+current.productId);
+    if(current.productId=="Jaryan"||current.productId=="Hamtavar-Personal")Check(String.IsNullOrEmpty(current.link)&&((TableLayoutPanel)Field(carousel,"adRow")).ColumnStyles[2].Width==0,"product without an approved URL has no destination button: "+current.productId);
+    Call(carousel,"AdvanceAdvertisement");
+   }
+   Check(carousel.ProductCount==11&&products.Count==11&&carousel.CurrentIndex==0,"advertising rotation visits every product once and wraps after all eleven");
+   int index=carousel.CurrentIndex;Lang.English=!Lang.English;carousel.ApplyLanguage();Check(carousel.CurrentIndex==index,"language changes preserve the current advertisement");Lang.English=false;
+  }
   if(args.Length>0&&args[0]=="dialogs"){ReportDialogs(Path.Combine(Environment.CurrentDirectory,"qa-artifacts","after"));return failures==0?0:1;}
   string root=Path.Combine(Environment.CurrentDirectory,"ui-quality-"+Guid.NewGuid().ToString("N"));Directory.CreateDirectory(root);
   string pictures=Path.Combine(Environment.CurrentDirectory,"qa-artifacts",args.Length>0?args[0]:"after");Directory.CreateDirectory(pictures);
@@ -28,6 +41,11 @@ class UIQualityTests {
   using(var w=new Window(true,settings)){
    w.Show();Pump(650);
    var stableInput=(TextBox)Field(w,"link");var inputHandle=stableInput.Handle;
+   bool regular=true;foreach(var control in Tree(w))if(control.Font.Bold)regular=false;Check(regular,"all window controls use regular typography");
+   stableInput.Text="not-a-download-url";var invalid=(System.Threading.Tasks.Task)typeof(Window).GetMethod("Start",flags).Invoke(w,new object[]{true});
+   Check(invalid.IsCompleted&&w.Enabled&&w.OwnedForms.Length==0,"invalid download links show an inline problem without locking the window");stableInput.Clear();
+   Call(w,"ToggleLanguage");Check(((MehrDownload.StatusStrip)Field(w,"statusStrip")).Hint==Lang.T("error.invalidUrl"),"persistent validation errors follow a language change");Call(w,"ToggleLanguage");
+   inputHandle=stableInput.Handle;
    for(int resize=0;resize<12;resize++){w.Size=resize%2==0?new Size(960,640):new Size(1280,940);Application.DoEvents();}
    Check(stableInput.Handle==inputHandle,"responsive breakpoints preserve the native URL input instead of reparenting controls");
    Call(w,"ToggleLanguage");Call(w,"ToggleLanguage");
@@ -44,10 +62,12 @@ class UIQualityTests {
    var sort=(GlassButton)Field(w,"sortButton");
    Check(sort.Menu.Items[0].Text==Lang.T("sort.newest"),"sort menu follows the active language");
    var placement=(AdPlacement)Field(w,"ad");var advertisement=(Advertisement)Field(placement,"ad");
-   advertisement.title="تبلیغ آزمایشی";advertisement.description="توضیح آزمایشی";advertisement.ctaText="مشاهده";placement.ApplyLanguage();
+   Check(!placement.ShouldAdvance(placement.PointToScreen(new Point(5,5)),false),"advertisement rotation pauses while the pointer is over the banner");
+   Check(!placement.ShouldAdvance(placement.PointToScreen(new Point(-20,-20)),true),"advertisement rotation pauses while its action has keyboard focus");
+   advertisement.titleEn=advertisement.descriptionEn=advertisement.ctaTextEn="";advertisement.title="تبلیغ آزمایشی";advertisement.description="توضیح آزمایشی";advertisement.ctaText="مشاهده";placement.ApplyLanguage();
    Check(((Label)Field(placement,"heading")).Text==advertisement.title&&((GlassButton)Field(placement,"action")).Text==advertisement.ctaText,"custom Persian ad copy is preserved when English translation is missing");
    advertisement.titleEn="Translated ad";placement.ApplyLanguage();Check(((Label)Field(placement,"heading")).Text=="Translated ad","explicit English advertisement copy takes precedence");
-   typeof(AdPlacement).GetField("ad",flags).SetValue(placement,new Advertisement());placement.ApplyLanguage();
+   var cleanCatalog=ProductAds.Create();var catalog=(List<Advertisement>)Field(placement,"catalog");catalog[0]=cleanCatalog[0];typeof(AdPlacement).GetField("ad",flags).SetValue(placement,catalog[placement.CurrentIndex]);placement.ApplyLanguage();
    var chrome=(TitleBar)typeof(GlassForm).GetField("titleBar",flags).GetValue(w);var close=(WindowActionButton)Field(chrome,"close");
    Check(close.Left>w.Width/2&&close.AccessibleName==Lang.T("win.close"),"title buttons move and localize after a language switch");
    using(var prompt=new DownloadPrompt("https://example.com/file.zip","file.zip",false,false)){
@@ -92,10 +112,12 @@ class UIQualityTests {
       Check(w.Size==size,label+": requested window size is supported (actual "+w.Width+"x"+w.Height+")");
       Check(((Control)Field(w,"history")).Height>=100,label+": downloads retain usable vertical space");
       Check(!((Panel)Field(w,"sidebarScroll")).HorizontalScroll.Visible,label+": sidebar scrolls only vertically");
+      var adTag=(Label)Field(placement,"tag");Check(TextRenderer.MeasureText(adTag.Text,adTag.Font).Width<=adTag.Width,label+": advertisement counter stays on one line");
       Capture(w,Path.Combine(pictures,label+".png"));
      }
     }
    }
+   CaptureAdvertisements(w,pictures);
    Call(w,"ToggleLanguage");Call(w,"ToggleLanguage"); // preferences survive a real save
    if(!(bool)Field(w,"dark"))Call(w,"ToggleTheme");
    if(!(bool)Field(w,"sidebarCollapsed"))Call(w,"ToggleSidebar");Pump(300);
@@ -124,6 +146,19 @@ class UIQualityTests {
   Console.WriteLine("UI QUALITY: "+checks+" checks, "+failures+" failures. Screenshots: "+pictures);return failures==0?0:1;
  }
  static void ReportDialogs(string pictures){
-  foreach(bool english in new[]{true,false}){Lang.English=english;using(var dialog=new ReportDialog()){FdmTheme.Apply(dialog,dialog,true);dialog.Show();Pump(100);bool inside=true,normalHeight=true;foreach(var c in Tree(dialog))if(c is GlassButton){var bounds=dialog.RectangleToClient(c.RectangleToScreen(c.ClientRectangle));inside&=dialog.ClientRectangle.Contains(bounds);normalHeight&=c.Height>=40&&c.Height<=56;}Check(inside,"report send button stays inside the "+(english?"English":"Persian")+" dialog");Check(normalHeight,"report send button keeps a normal action height in "+(english?"English":"Persian"));Capture(dialog,Path.Combine(pictures,english?"report-en-dark.png":"report-fa-dark.png"));dialog.Close();}}
+  foreach(bool english in new[]{true,false}){Lang.English=english;using(var dialog=new ReportDialog()){FdmTheme.Apply(dialog,dialog,true);dialog.Show();Pump(100);bool inside=true,normalHeight=true;GlassButton send=null;foreach(var c in Tree(dialog))if(c is GlassButton){send=(GlassButton)c;var bounds=dialog.RectangleToClient(c.RectangleToScreen(c.ClientRectangle));inside&=dialog.ClientRectangle.Contains(bounds);normalHeight&=c.Height>=40&&c.Height<=56;}Check(inside,"report send button stays inside the "+(english?"English":"Persian")+" dialog");Check(normalHeight,"report send button keeps a normal action height in "+(english?"English":"Persian"));send.PerformClick();bool inline=false;foreach(var c in Tree(dialog))if(c is Label&&c.Text==Lang.T("report.required"))inline=true;Check(inline&&dialog.Enabled&&dialog.OwnedForms.Length==0,"report validation is inline and does not create a blocking native popup");Capture(dialog,Path.Combine(pictures,english?"report-en-dark.png":"report-fa-dark.png"));dialog.Close();}}
+ }
+ static void CaptureAdvertisements(Window window,string pictures){
+  var placement=(AdPlacement)Field(window,"ad");var rotation=(System.Windows.Forms.Timer)Field(placement,"rotation");rotation.Stop();
+  bool original=Lang.English;window.Size=new Size(1060,760);
+  foreach(bool english in new[]{false,true}){
+   if(Lang.English!=english)Call(window,"ToggleLanguage");
+   for(int index=0;index<11;index++){
+    var current=(Advertisement)Field(placement,"ad");
+    if(current.productId=="Jaryan"||current.productId=="Hamtavar-Personal")Check(!((GlassButton)Field(placement,"action")).Visible,"unapproved product destination stays hidden in "+(english?"English":"Persian")+": "+current.productId);
+    Capture(window,Path.Combine(pictures,"product-"+(english?"en-":"fa-")+current.productId+".png"));placement.AdvanceAdvertisement();
+   }
+  }
+  if(Lang.English!=original)Call(window,"ToggleLanguage");rotation.Start();
  }
 }

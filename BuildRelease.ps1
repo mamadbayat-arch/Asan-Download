@@ -10,7 +10,7 @@ New-Item -ItemType Directory -Path (Join-Path $PSScriptRoot 'server/public/downl
 $taskExtensionStage=Join-Path $PSScriptRoot 'Release/ExtensionPackage/BrowserExtension'
 New-Item -ItemType Directory -Path $taskExtensionStage -Force | Out-Null
 Copy-Item -LiteralPath BrowserExtension/manifest.json,BrowserExtension/background.js,BrowserExtension/intent.js,BrowserExtension/popup.html,BrowserExtension/popup.js,BrowserExtension/icon128.png,BrowserExtension/README-fa.txt,BrowserExtension/guide.html -Destination $taskExtensionStage -Force
-Copy-Item -LiteralPath server/public/assets/KalamehWeb-Regular.woff2 -Destination $taskExtensionStage -Force
+Copy-Item -LiteralPath Assets/Vazir-Regular.ttf,Assets/Vazir-OFL.txt -Destination $taskExtensionStage -Force
 Compress-Archive -LiteralPath $taskExtensionStage -DestinationPath Release/AsanDownload-BrowserExtension.zip -Force
 Copy-Item -LiteralPath MehrDownload.exe -Destination Release/AsanDownload.exe -Force
 [IO.File]::WriteAllText((Join-Path $PSScriptRoot 'Release/README.txt'),"آسان دانلود — نسخه $taskVersion`r`nفایل ZIP را استخراج و Install.cmd را اجرا کنید.`r`nفایل AsanDownload-BrowserExtension.zip شامل افزونهٔ Chrome و Edge و راهنمای فعال‌سازی است.`r`nهنگام بازشدن برنامه نسخهٔ جدید خودکار بررسی و نصب می‌شود.`r`nتنظیمات و سابقهٔ دانلودها حفظ می‌شوند. اتصال ناموفق مانع اجرای برنامه نیست.`r`n")

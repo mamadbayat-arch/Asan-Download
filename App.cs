@@ -100,7 +100,7 @@ namespace MehrDownload {
   Panel sidebarScroll;
   Label sidebarBrand;
   bool compactLayout,updatingLayout;
-  string settingsError,downloadError;
+  string settingsError,downloadError,problemKey,problemDetail;
 
   public Window(bool restore) : this(restore,null) {}
   internal Window(bool restore,string settingsPath) {
@@ -171,7 +171,7 @@ namespace MehrDownload {
    row.ColumnStyles.Add(new ColumnStyle(SizeType.Absolute,164));
    row.ColumnStyles.Add(new ColumnStyle(SizeType.Absolute,214));
    // left: primary action
-   addButton=new GlassButton{Text=Lang.T("action.add"),Primary=true,Glyph=1,Font=Brand.Font(11,FontStyle.Bold),Dock=DockStyle.Fill,Margin=new Padding(0,6,10,6),AccessibleName=Lang.T("action.addNew")};
+   addButton=new GlassButton{Text=Lang.T("action.add"),Primary=true,Glyph=1,Font=Brand.Font(11,FontStyle.Regular),Dock=DockStyle.Fill,Margin=new Padding(0,6,10,6),AccessibleName=Lang.T("action.addNew")};
    localized.Add(new KeyValuePair<Control,string>(addButton,"action.add"));
    addButton.Click+=(s,e)=>{link.Focus();link.SelectAll();};
    row.Controls.Add(addButton,4,0);
@@ -228,8 +228,8 @@ namespace MehrDownload {
    row.ColumnStyles.Add(new ColumnStyle(SizeType.Absolute,182));
    // actions on the left, link field on the right (RTL reading order)
    var actionHost=new Panel{Dock=DockStyle.Fill,Margin=Padding.Empty,BackColor=Color.Transparent};
-   start=Button(Lang.T("action.start"),1);((GlassButton)start).Primary=true;start.Dock=DockStyle.Fill;start.Font=Brand.Font(11,FontStyle.Bold);localized.Add(new KeyValuePair<Control,string>(start,"action.start"));
-   pause=Button(Lang.T("action.stop"),10);pause.Dock=DockStyle.Fill;pause.Visible=false;pause.Font=Brand.Font(11,FontStyle.Bold);localized.Add(new KeyValuePair<Control,string>(pause,"action.stop"));
+   start=Button(Lang.T("action.start"),3);((GlassButton)start).Primary=true;start.Dock=DockStyle.Fill;start.Font=Brand.Font(11,FontStyle.Regular);localized.Add(new KeyValuePair<Control,string>(start,"action.start"));
+   pause=Button(Lang.T("action.stop"),10);pause.Dock=DockStyle.Fill;pause.Visible=false;pause.Font=Brand.Font(11,FontStyle.Regular);localized.Add(new KeyValuePair<Control,string>(pause,"action.stop"));
    actionHost.Controls.Add(start);actionHost.Controls.Add(pause);
    row.Controls.Add(actionHost,4,0);
    connections.Dock=DockStyle.Fill;connections.Margin=new Padding(0,0,10,0);connections.AccessibleName=Lang.T("connections.label");
@@ -247,7 +247,7 @@ namespace MehrDownload {
    composer.Controls.Add(row,0,0);
    status=new Label{Text=Lang.T("status.idle"),BackColor=Color.Transparent,Font=Brand.Font(9),AutoSize=false};
    contentLayout.Controls.Add(card,0,1);
-   paste.Click+=(s,e)=>{try{if(Clipboard.ContainsText()){link.Text=Clipboard.GetText().Trim();link.Focus();}else MessageBox.Show(Lang.T("error.clipboard"),Text);}catch(Exception ex){MessageBox.Show(ex.Message,Text);}};
+   paste.Click+=(s,e)=>{try{if(Clipboard.ContainsText()){link.Text=Clipboard.GetText().Trim();link.Focus();}else ShowLocalizedProblem("error.clipboard");}catch(Exception ex){ShowProblem(ex.Message);}};
    link.TextChanged+=(s,e)=>UpdateTarget();
    link.HandleCreated+=(s,e)=>Brand.Cue(link,Lang.T("link.placeholder"));
    start.Click+=async(s,e)=>await Start();
@@ -262,7 +262,7 @@ namespace MehrDownload {
    count=new StatTile{Caption=Lang.T("stat.completed"),IconGlyph="count",Format="0",Dock=DockStyle.Fill};
    total=new StatTile{Caption=Lang.T("stat.size"),IconGlyph="size",Suffix=" MB",Format="0.0",Dock=DockStyle.Fill};
    row.Controls.Add(speed,0,0);row.Controls.Add(count,1,0);row.Controls.Add(total,2,0);
-   speed.Click+=(s,e)=>{saved.SpeedInBits=!saved.SpeedInBits;RenderSpeed();ReloadHistory();try{saved.Save(settings);}catch(Exception ex){MessageBox.Show(ex.Message,Text);}};
+   speed.Click+=(s,e)=>{saved.SpeedInBits=!saved.SpeedInBits;RenderSpeed();ReloadHistory();try{saved.Save(settings);}catch(Exception ex){ShowProblem(ex.Message);}};
    speed.Cursor=Cursors.Hand;
    speed.TabStop=true;count.TabStop=false;total.TabStop=false;
    hints.SetToolTip(speed,Lang.T("stat.speedTip"));
@@ -312,7 +312,7 @@ namespace MehrDownload {
    layout.ColumnStyles.Add(new ColumnStyle(SizeType.Percent,100));
    var heights=new[]{34,44,44,44,44,18,44,44,44,18,44,44,44};
    for(int n=0;n<heights.Length;n++)layout.RowStyles.Add(new RowStyle(SizeType.Absolute,heights[n]));
-   var brandLabel=new Label{Text=Lang.T("app.name"),Dock=DockStyle.Fill,TextAlign=Lang.Rtl?ContentAlignment.MiddleRight:ContentAlignment.MiddleLeft,Font=Brand.Font(12.5f,FontStyle.Bold),BackColor=Color.Transparent,ForeColor=Fdm.Light.Ink,AutoSize=false};
+   var brandLabel=new Label{Text=Lang.T("app.name"),Dock=DockStyle.Fill,TextAlign=ContentAlignment.MiddleLeft,Font=Brand.Font(12.5f,FontStyle.Regular),BackColor=Color.Transparent,ForeColor=Fdm.Light.Ink,AutoSize=false};
    sidebarBrand=brandLabel;localized.Add(new KeyValuePair<Control,string>(brandLabel,"app.name"));alignedLabels.Add(brandLabel);
    layout.Controls.Add(brandLabel,0,0);
    navItems.Add(Nav(Lang.T("filter.allNav"),0,()=>SetFilter("all")));
@@ -326,7 +326,7 @@ namespace MehrDownload {
    layout.Controls.Add(new Panel{Dock=DockStyle.Fill,Margin=new Padding(10,6,10,6),BackColor=Color.Transparent},0,5);
    folder=NavButton(Lang.T("nav.downloads"),5);
    folder.Tag="nav.downloads";
-   folder.Click+=(s,e)=>{try{if(!String.IsNullOrEmpty(saved.Folder)&&Directory.Exists(saved.Folder))Process.Start("explorer.exe","\""+saved.Folder+"\"");else ChooseFolder();}catch(Exception ex){MessageBox.Show(ex.Message,Text);}};
+   folder.Click+=(s,e)=>{try{if(!String.IsNullOrEmpty(saved.Folder)&&Directory.Exists(saved.Folder))Process.Start("explorer.exe","\""+saved.Folder+"\"");else ChooseFolder();}catch(Exception ex){ShowProblem(ex.Message);}};
    var setFolder=NavButton(Lang.T("nav.setFolder"),4);
    setFolder.Tag="nav.setFolder";
    setFolder.Click+=(s,e)=>{if(!engine.Running)ChooseFolder();};
@@ -383,7 +383,7 @@ namespace MehrDownload {
    try{
    Text=Lang.T("app.name");
    foreach(var entry in localized)entry.Key.Text=Lang.T(entry.Value);
-   foreach(Label label in alignedLabels)label.TextAlign=Lang.Rtl?ContentAlignment.MiddleRight:ContentAlignment.MiddleLeft;
+   foreach(Label label in alignedLabels)label.TextAlign=ContentAlignment.MiddleLeft;
    Lang.Apply(this);
    Brand.Rescale(this);
    titleBar.ApplyLanguage();
@@ -414,6 +414,7 @@ namespace MehrDownload {
    RefreshFilterLabels();
    UpdateTarget();
    RefreshTable();
+   if(problemKey!=null){downloadError=Lang.T(problemKey)+(problemDetail??"");status.Text=downloadError;}
    RefreshStatusStrip();
    }finally{EndVisualUpdate();}
   }
@@ -489,7 +490,7 @@ namespace MehrDownload {
    box.BorderStyle=BorderStyle.None;box.Dock=DockStyle.Fill;panel.Controls.Add(box);return panel;
   }
   Label Label(string text){
-   var label=new Label{Text=text,Dock=DockStyle.Fill,TextAlign=Lang.Rtl?ContentAlignment.MiddleRight:ContentAlignment.MiddleLeft,AutoEllipsis=true,AutoSize=false,BackColor=Color.Transparent,Margin=Padding.Empty,Font=Brand.Font(10)};
+   var label=new Label{Text=text,Dock=DockStyle.Fill,TextAlign=ContentAlignment.MiddleLeft,AutoEllipsis=true,AutoSize=false,BackColor=Color.Transparent,Margin=Padding.Empty,Font=Brand.Font(10)};
    alignedLabels.Add(label);return label;
   }
   GlassButton Button(string text,int glyph){return new GlassButton{Text=text,Glyph=glyph,Font=Brand.Font(10),Height=40,Width=110,Margin=new Padding(0)};}
@@ -633,13 +634,13 @@ namespace MehrDownload {
   void OpenCompleted(bool reveal) {
    if(selectedFile==null)return;
    var file=selectedFile;
-   try{if(!File.Exists(file.Path)){MessageBox.Show(Lang.T("table.missing")+file.Path,Text);return;}if(reveal)Process.Start("explorer.exe","/select,\""+file.Path+"\"");else Process.Start(new ProcessStartInfo(file.Path){UseShellExecute=true});}catch(Exception ex){MessageBox.Show(ex.Message,Text);}
+   try{if(!File.Exists(file.Path)){ShowLocalizedProblem("table.missing",file.Path);return;}if(reveal)Process.Start("explorer.exe","/select,\""+file.Path+"\"");else Process.Start(new ProcessStartInfo(file.Path){UseShellExecute=true});}catch(Exception ex){ShowProblem(ex.Message);}
   }
 
   bool ChooseFolder() {
    using(var dlg=new FolderBrowserDialog {Description=Lang.T("folder.dialog"),SelectedPath=saved.Folder ?? Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile),"Downloads")}) {
     if(dlg.ShowDialog()!=DialogResult.OK)return false;
-    try{saved.Folder=dlg.SelectedPath;saved.Save(settings);UpdateTarget();return true;}catch(Exception ex){MessageBox.Show(ex.Message,Text);return false;}
+    try{saved.Folder=dlg.SelectedPath;saved.Save(settings);UpdateTarget();return true;}catch(Exception ex){ShowProblem(ex.Message);return false;}
    }
   }
   // Runs an action on the user interface thread and completes when it has been applied.
@@ -655,17 +656,17 @@ namespace MehrDownload {
   async Task Start(bool confirmed=false) {
    if(engine.Running) return;
    Uri uri; string url=link.Text.Trim();
-   if(!Uri.TryCreate(url,UriKind.Absolute,out uri) || (uri.Scheme!="http" && uri.Scheme!="https")) {MessageBox.Show(Lang.T("error.invalidUrl"),Text);return;}
+   if(!Uri.TryCreate(url,UriKind.Absolute,out uri) || (uri.Scheme!="http" && uri.Scheme!="https")) {ShowLocalizedProblem("error.invalidUrl");return;}
    if(String.IsNullOrEmpty(saved.Folder) && !ChooseFolder()) return;
    UpdateTarget();
    if(!confirmed&&!ConfirmDownload(url,false))return;
    Exception failure=null;
    try {
     string target=Path.GetFullPath(destination.Text);
-    if(File.Exists(target)) {MessageBox.Show(Lang.T("error.exists"),Text);return;}
+    if(File.Exists(target)) {ShowLocalizedProblem("error.exists");return;}
     Directory.CreateDirectory(Path.GetDirectoryName(target));
     currentUrl=url;currentTarget=target;currentConnections=connections.Value;
-    downloadError=null;
+    downloadError=null;problemKey=problemDetail=null;
     saved.Url=url;saved.Target=target;saved.Connections=currentConnections;saved.Save(settings);
     previous=0;previousTime=DateTime.UtcNow;downloadSpeed.Reset();
     SetRunning(true);
@@ -676,10 +677,16 @@ namespace MehrDownload {
    } catch(Exception ex) {failure=ex;}
    await RunUi(delegate{
     SetRunning(false);RefreshDownload();
-    if(!closing&&(failure!=null||engine.Error!=null)){downloadError=failure!=null?failure.Message:engine.Error;status.Text=downloadError;RefreshStatusStrip();ShowToast(Lang.T("toast.failed"),true);}
+    if(!closing&&(failure!=null||engine.Error!=null))ShowProblem(failure!=null?failure.Message:engine.Error);
     if(!closing&&failure==null&&engine.Error==null&&!engine.Paused)StartNextQueued();
    });
   }
+
+  void ShowProblem(string message){
+   problemKey=problemDetail=null;
+   downloadError=message;status.Text=message;RefreshStatusStrip();ShowToast(message,true);
+  }
+  void ShowLocalizedProblem(string key,string detail=""){ShowProblem(Lang.T(key)+detail);problemKey=key;problemDetail=detail;}
 
   void SetRunning(bool running){
    link.Enabled=linkSummary.Enabled=paste.Enabled=connections.Enabled=addButton.Enabled=!running;
@@ -697,14 +704,14 @@ namespace MehrDownload {
   }
   int AddBatch(string text){
    var links=ParseLinks(text);
-   if(links.Count==0){MessageBox.Show(Lang.T("batch.empty"),Text);return 0;}
+   if(links.Count==0){ShowLocalizedProblem("batch.empty");return 0;}
    int added=0;bool full=false;
    foreach(string url in links){
     if(url==currentUrl||saved.Queue.Contains(url))continue;
     if(saved.Queue.Count>=100){full=true;break;}
     saved.Queue.Add(url);added++;
    }
-   if(added==0){MessageBox.Show(Lang.T("batch.invalid"),Text);return 0;}
+   if(added==0){ShowLocalizedProblem("batch.invalid");return 0;}
    SaveSettings();RefreshTable();
    ShowToast(Lang.T("batch.added").Replace("{0}",CompletedFile.PersianDigits(added.ToString())),false);
    if(full)ShowToast(Lang.T("batch.limit"),true);
@@ -763,7 +770,7 @@ namespace MehrDownload {
 
   void IntegrationSettings(){using(var dialog=new GlassForm{Text=Lang.T("integration.title"),ClientSize=new Size(600,420),MinimumSize=new Size(600,420),StartPosition=FormStartPosition.CenterParent,Font=Brand.Font(11),RightToLeft=Lang.Rtl?RightToLeft.Yes:RightToLeft.No}){
    var layout=new SmoothTableLayout{Dock=DockStyle.Fill,Padding=new Padding(24),RowCount=4};foreach(int height in new[]{48,140,55,55})layout.RowStyles.Add(new RowStyle(SizeType.Absolute,height));
-   var startup=new CheckBox{Text=Lang.T("integration.startup"),Checked=Integration.StartupEnabled,Dock=DockStyle.Fill};startup.CheckedChanged+=(s,e)=>{try{Integration.StartupEnabled=startup.Checked;}catch(Exception ex){MessageBox.Show(ex.Message,Text);}};layout.Controls.Add(startup,0,0);
+   var startup=new CheckBox{Text=Lang.T("integration.startup"),Checked=Integration.StartupEnabled,Dock=DockStyle.Fill};startup.CheckedChanged+=(s,e)=>{try{Integration.StartupEnabled=startup.Checked;}catch(Exception ex){ShowProblem(ex.Message);}};layout.Controls.Add(startup,0,0);
    layout.Controls.Add(Label(Lang.T("integration.help")),0,1);
    var folderButton=Button(Lang.T("action.extensionFolder"),0);folderButton.Width=200;folderButton.Dock=DockStyle.Right;folderButton.Click+=(s,e)=>Process.Start("explorer.exe","\""+Path.Combine(Path.GetDirectoryName(ReleaseInfo.InstalledPath),"BrowserExtension")+"\"");layout.Controls.Add(folderButton,0,2);
    var close=Button(Lang.T("action.close"),0);close.DialogResult=DialogResult.OK;close.Dock=DockStyle.Right;layout.Controls.Add(close,0,3);dialog.Controls.Add(layout);FdmTheme.Apply(dialog,dialog,dark);dialog.ShowDialog(this);
@@ -798,6 +805,7 @@ namespace MehrDownload {
   }
 
   void RefreshStatusStrip(){
+   statusStrip.HasProblem=!engine.Running&&!String.IsNullOrEmpty(downloadError);
    statusStrip.SpeedText=CompletedFile.PersianDigits((displayedRate*(saved.SpeedInBits?8:1)/1000000d).ToString("0.00",CultureInfo.InvariantCulture))+(saved.SpeedInBits?" Mb/s":" MB/s");
    statusStrip.BadgeText=CompletedFile.PersianDigits(engine.ActiveConnections.ToString())+" "+Lang.T("status.connections");
    statusStrip.Hint=engine.Running?engine.Status:!String.IsNullOrEmpty(downloadError)?downloadError:(String.IsNullOrEmpty(saved.Folder)?Lang.T("folder.incomplete"):saved.Folder??"");hints.SetToolTip(statusStrip,statusStrip.Hint);statusStrip.Invalidate();
