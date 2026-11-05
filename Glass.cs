@@ -197,7 +197,22 @@ namespace MehrDownload {
  public class GlassForm : Form {
   public bool GlassDark;
   internal TitleBar titleBar;
-  Bitmap background;Size backgroundSize;bool backgroundDark;
+  int visualUpdates;
+  readonly List<Control> suspendedControls=new List<Control>();
+  [System.Runtime.InteropServices.DllImport("user32.dll")]static extern IntPtr SendMessage(IntPtr handle,int message,IntPtr wParam,IntPtr lParam);
+  protected override CreateParams CreateParams {get{var p=base.CreateParams;p.ExStyle|=0x02000000;return p;}}
+  internal void BeginVisualUpdate(){
+   if(visualUpdates++!=0)return;
+   if(IsHandleCreated&&Visible)SendMessage(Handle,0x000B,IntPtr.Zero,IntPtr.Zero);
+   SuspendTree(this);
+  }
+  void SuspendTree(Control root){root.SuspendLayout();suspendedControls.Add(root);foreach(Control child in root.Controls)SuspendTree(child);}
+  protected override void OnHandleCreated(EventArgs e){base.OnHandleCreated(e);if(visualUpdates>0)SendMessage(Handle,0x000B,IntPtr.Zero,IntPtr.Zero);}
+  internal void EndVisualUpdate(){
+   if(visualUpdates==0||--visualUpdates!=0)return;
+   try{for(int n=suspendedControls.Count-1;n>=0;n--)if(!suspendedControls[n].IsDisposed)suspendedControls[n].ResumeLayout(true);}
+   finally{suspendedControls.Clear();if(IsHandleCreated)SendMessage(Handle,0x000B,new IntPtr(1),IntPtr.Zero);Invalidate(true);}
+  }
   VeilAnim fadeAnimation;
   public GlassForm(){
    DoubleBuffered=true;ResizeRedraw=true;FormBorderStyle=FormBorderStyle.None;
@@ -207,7 +222,7 @@ namespace MehrDownload {
   }
   protected override void OnLayout(LayoutEventArgs e){
    base.OnLayout(e);
-   if(titleBar!=null){ titleBar.Bounds=new Rectangle(0,0,Math.Max(1,ClientSize.Width),46); titleBar.BringToFront(); titleBar.Invalidate(); }
+   if(titleBar!=null){ var bounds=new Rectangle(0,0,Math.Max(1,ClientSize.Width),46);if(titleBar.Bounds!=bounds)titleBar.Bounds=bounds; }
   }
   protected override void OnResize(EventArgs e){ base.OnResize(e); if(titleBar!=null)titleBar.UpdateRestore(); }
   internal void ToggleMaximized(){MaximizedBounds=Screen.FromControl(this).WorkingArea;WindowState=WindowState==FormWindowState.Maximized?FormWindowState.Normal:FormWindowState.Maximized;}
@@ -221,14 +236,10 @@ namespace MehrDownload {
    base.WndProc(ref m);
   }
   protected override void OnPaintBackground(PaintEventArgs e){
-   if(background==null||backgroundSize!=ClientSize||backgroundDark!=GlassDark){
-    if(background!=null)background.Dispose();
-    background=new Bitmap(Math.Max(1,Width),Math.Max(1,Height));backgroundSize=ClientSize;backgroundDark=GlassDark;
-    using(var canvas=Graphics.FromImage(background))PaintBackdrop(canvas);
-   }
-   e.Graphics.DrawImageUnscaled(background,0,0);
+   var palette=Fdm.Of(GlassDark);
+   using(var brush=new SolidBrush(palette.Page))e.Graphics.FillRectangle(brush,e.ClipRectangle);
   }
-  protected override void Dispose(bool disposing){ if(disposing){if(fadeAnimation!=null){Ticker.Remove(fadeAnimation);fadeAnimation.Cancel();fadeAnimation=null;}if(background!=null){background.Dispose();background=null;}} base.Dispose(disposing); }
+  protected override void Dispose(bool disposing){ if(disposing){if(fadeAnimation!=null){Ticker.Remove(fadeAnimation);fadeAnimation.Cancel();fadeAnimation=null;}} base.Dispose(disposing); }
   void PaintBackdrop(Graphics g){
    var palette=Fdm.Of(GlassDark);
    g.SmoothingMode=SmoothingMode.AntiAlias;
@@ -271,6 +282,20 @@ namespace MehrDownload {
  }
 
  class SmoothTableLayout : TableLayoutPanel { public SmoothTableLayout(){DoubleBuffered=true;RightToLeft=Lang.Rtl?RightToLeft.Yes:RightToLeft.No;} }
+ class CenteredActionRow : FlowLayoutPanel {
+  bool arranging;
+  public CenteredActionRow(){Dock=DockStyle.Fill;WrapContents=false;RightToLeft=RightToLeft.No;BackColor=Color.Transparent;FlowDirection=Lang.Rtl?FlowDirection.RightToLeft:FlowDirection.LeftToRight;DoubleBuffered=true;}
+  protected override void OnLayout(LayoutEventArgs e){
+   if(arranging)return;
+   arranging=true;
+   try{
+    int width=0,height=0;foreach(Control child in Controls)if(child.Visible){width+=child.Width+child.Margin.Horizontal;height=Math.Max(height,child.Height+child.Margin.Vertical);}
+    int x=Math.Max(0,(ClientSize.Width-width)/2),y=Math.Max(0,(ClientSize.Height-height)/2);
+    var padding=new Padding(x,y,x,y);if(Padding!=padding)Padding=padding;
+    base.OnLayout(e);
+   }finally{arranging=false;}
+  }
+ }
 
  class WindowActionButton : AnimatedControl {
   public int Glyph;public bool Restored;

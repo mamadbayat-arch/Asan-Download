@@ -3,6 +3,11 @@
 !/.gitignore
 !/.gitattributes
 !/README.md
+!/AGENTS.md
+!/DEPLOYMENT.md
+!/TODO-CICD.md
+!/.github/
+!/ci/
 !/RELEASE-*.md
 !/*.cs
 !/Build.ps1

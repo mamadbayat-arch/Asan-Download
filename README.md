@@ -23,6 +23,11 @@ Persian Windows download manager with a browser extension and a small self-hoste
 
 ## Build and run
 
+Completed work is automatically committed/pushed on `main` after validation.
+GitHub Actions then tests, signs with the existing publisher identity, deploys
+through GitHub OIDC and verifies the public automatic-update package. See
+[DEPLOYMENT.md](DEPLOYMENT.md) for the pipeline and recovery procedure.
+
 Use Windows 10/11 with .NET Framework 4.8, PowerShell and Node.js 22 or later. The build uses the C# compiler included with Windows and does not require Visual Studio.
 
 ```powershell

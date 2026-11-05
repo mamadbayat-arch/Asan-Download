@@ -15,6 +15,7 @@ class UIQualityTests {
  static void Check(bool value,string text){checks++;Console.WriteLine((value?"PASS: ":"FAIL: ")+text);if(!value)failures++;}
  static void Pump(int ms){var until=DateTime.UtcNow.AddMilliseconds(ms);while(DateTime.UtcNow<until){Application.DoEvents();Thread.Sleep(10);}}
  static IEnumerable<Control> Tree(Control root){foreach(Control child in root.Controls){yield return child;foreach(var descendant in Tree(child))yield return descendant;}}
+ static bool TreeHasVeil(Control root){foreach(var child in Tree(root))if(child.GetType().Name=="Veil")return true;return false;}
  static void Capture(Form window,string path){Pump(700);using(var bitmap=new Bitmap(window.Width,window.Height)){window.DrawToBitmap(bitmap,window.ClientRectangle);bitmap.Save(path);}}
  [STAThread] static int Main(string[] args){
   Application.EnableVisualStyles();Application.SetCompatibleTextRenderingDefault(false);
@@ -26,6 +27,13 @@ class UIQualityTests {
   Lang.English=false;
   using(var w=new Window(true,settings)){
    w.Show();Pump(650);
+   var stableInput=(TextBox)Field(w,"link");var inputHandle=stableInput.Handle;
+   for(int resize=0;resize<12;resize++){w.Size=resize%2==0?new Size(960,640):new Size(1280,940);Application.DoEvents();}
+   Check(stableInput.Handle==inputHandle,"responsive breakpoints preserve the native URL input instead of reparenting controls");
+   Call(w,"ToggleLanguage");Call(w,"ToggleLanguage");
+   bool settled=true;foreach(var control in Tree(w)){var animated=control as AnimatedControl;if(animated!=null&&animated.EnterAmount<0.999)settled=false;}
+   Check(settled,"language switches do not replay staggered entrance animations");
+   Check(!TreeHasVeil(w),"language and resize changes never cover the interface with a transition layer");
    Check(Lang.English&&w.RightToLeft==RightToLeft.No&&((GlassButton)Field(w,"addButton")).Text=="Add download","saved English is applied before the first frame");
    Check(((DropZone)Field(w,"dropZone")).Visible&&((DropZone)Field(w,"dropZone")).Height>=60,"download drop zone is visible on the first frame before any resize");
    if(!Lang.English)Call(w,"ToggleLanguage");
@@ -44,6 +52,8 @@ class UIQualityTests {
    Check(close.Left>w.Width/2&&close.AccessibleName==Lang.T("win.close"),"title buttons move and localize after a language switch");
    using(var prompt=new DownloadPrompt("https://example.com/file.zip","file.zip",false,false)){
     prompt.Show(w);Pump(50);GlassButton accept=null;foreach(var c in Tree(prompt))if(c is GlassButton&&((GlassButton)c).Primary)accept=(GlassButton)c;
+    var actions=accept.Parent;Rectangle actionBounds=Rectangle.Empty;foreach(Control button in actions.Controls)actionBounds=actionBounds.IsEmpty?button.Bounds:Rectangle.Union(actionBounds,button.Bounds);
+    Check(Math.Abs(actionBounds.Left+actionBounds.Right-actions.ClientSize.Width)<=2&&Math.Abs(actionBounds.Top+actionBounds.Bottom-actions.ClientSize.Height)<=2,"confirmation actions are centered horizontally and vertically");
     accept.PerformClick();Check(prompt.DialogResult==DialogResult.Yes,"download confirmation accepts with its primary button");prompt.Close();
    }
    using(var prompt=new DownloadPrompt("https://example.com/file.zip","file.zip",false,false)){

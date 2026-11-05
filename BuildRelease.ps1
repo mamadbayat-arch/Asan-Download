@@ -2,7 +2,7 @@ param([switch]$PackageOnly, [string]$SigningKeyPath = '')
 $ErrorActionPreference='Stop'
 Set-Location -LiteralPath $PSScriptRoot
 if([string]::IsNullOrWhiteSpace($SigningKeyPath)){$SigningKeyPath=Join-Path $PSScriptRoot 'UPDATE-SIGNING-KEY.xml'}
-if(-not $PackageOnly -and -not (Test-Path -LiteralPath $SigningKeyPath -PathType Leaf)){throw 'The original publisher signing key is required. Use -PackageOnly to build a standalone installer without changing the automatic-update channel.'}
+if(-not $PackageOnly -and [string]::IsNullOrWhiteSpace($env:UPDATE_SIGNING_KEY_XML) -and -not (Test-Path -LiteralPath $SigningKeyPath -PathType Leaf)){throw 'The original publisher signing key is required. Set UPDATE_SIGNING_KEY_XML, provide SigningKeyPath, or use -PackageOnly.'}
 & ./Build.ps1
 if($LASTEXITCODE -ne 0){throw 'App build failed'}
 $taskVersion=[Reflection.AssemblyName]::GetAssemblyName((Join-Path $PSScriptRoot 'MehrDownload.exe')).Version.ToString(3)
@@ -26,7 +26,19 @@ $taskUrl='/downloads/AsanDownload-Update.exe'
 $taskPayload=$taskVersion+"`n"+$taskHash+"`n"+$taskExe.Length.ToString([Globalization.CultureInfo]::InvariantCulture)+"`n"+$taskUrl
 $taskRsa=New-Object Security.Cryptography.RSACryptoServiceProvider
 $taskRsa.PersistKeyInCsp=$false
-try {$taskRsa.FromXmlString([IO.File]::ReadAllText($SigningKeyPath));$taskSignature=[Convert]::ToBase64String($taskRsa.SignData([Text.Encoding]::UTF8.GetBytes($taskPayload),[Security.Cryptography.CryptoConfig]::MapNameToOID('SHA256')))} finally {$taskRsa.Dispose()}
+try {
+ $taskKeyXml=$env:UPDATE_SIGNING_KEY_XML
+ if([string]::IsNullOrWhiteSpace($taskKeyXml)){$taskKeyXml=[IO.File]::ReadAllText($SigningKeyPath)}
+ $taskRsa.FromXmlString($taskKeyXml)
+ $taskPublic=New-Object Security.Cryptography.RSACryptoServiceProvider
+ $taskPublic.PersistKeyInCsp=$false
+ try {
+  $taskPublic.FromXmlString([IO.File]::ReadAllText((Join-Path $PSScriptRoot 'Assets/UpdatePublicKey.xml')))
+  $taskSignatureBytes=$taskRsa.SignData([Text.Encoding]::UTF8.GetBytes($taskPayload),[Security.Cryptography.CryptoConfig]::MapNameToOID('SHA256'))
+  if(-not $taskPublic.VerifyData([Text.Encoding]::UTF8.GetBytes($taskPayload),[Security.Cryptography.CryptoConfig]::MapNameToOID('SHA256'),$taskSignatureBytes)){throw 'Signing key does not match the pinned publisher identity'}
+  $taskSignature=[Convert]::ToBase64String($taskSignatureBytes)
+ } finally {$taskPublic.Dispose()}
+} finally {$taskRsa.Dispose();$taskKeyXml=$null;$env:UPDATE_SIGNING_KEY_XML=$null}
 $taskExtensionManifest=Get-Content -LiteralPath BrowserExtension/manifest.json -Raw|ConvertFrom-Json
 $taskRelease=[ordered]@{version=$taskVersion;available=$true;downloadUrl='/downloads/AsanDownload-Windows.zip';size=(Get-Item server/public/downloads/AsanDownload-Windows.zip).Length;updateUrl=$taskUrl;exeSize=$taskExe.Length;sha256=$taskHash;signature=$taskSignature;extensionDownloadUrl='/downloads/AsanDownload-BrowserExtension.zip';extensionVersion=$taskExtensionManifest.version;extensionSize=(Get-Item Release/AsanDownload-BrowserExtension.zip).Length;extensionSha256=(Get-FileHash Release/AsanDownload-BrowserExtension.zip -Algorithm SHA256).Hash.ToLowerInvariant()}
 [IO.File]::WriteAllText((Join-Path $PSScriptRoot 'server/public/release.json'),($taskRelease|ConvertTo-Json -Compress),[Text.UTF8Encoding]::new($false))

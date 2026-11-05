@@ -38,7 +38,7 @@ namespace MehrDownload {
    cardRows.Controls.Add(host,0,1);
    card.Controls.Add(cardRows);
    body.Controls.Add(card,0,1);
-   var actions=new FlowLayoutPanel{Dock=DockStyle.Fill,FlowDirection=Lang.Rtl?FlowDirection.RightToLeft:FlowDirection.LeftToRight,RightToLeft=RightToLeft.No,BackColor=Color.Transparent,Padding=new Padding(0,14,0,0),WrapContents=false};
+   var actions=new CenteredActionRow();
    var yes=new GlassButton{Text=queued?Lang.T("prompt.enqueue"):Lang.T("prompt.download"),Primary=true,Size=new Size(160,44),DialogResult=DialogResult.Yes};
    var no=new GlassButton{Text=Lang.T("prompt.cancel"),Size=new Size(130,44),DialogResult=DialogResult.Cancel};
    actions.Controls.Add(yes);actions.Controls.Add(no);
@@ -66,7 +66,7 @@ namespace MehrDownload {
    var box=new GlassPanel{Dock=DockStyle.Fill,Radius=12,Padding=new Padding(12),Margin=Padding.Empty,Elevated=false};
    box.Controls.Add(area);
    body.Controls.Add(box,0,2);
-   var actions=new FlowLayoutPanel{Dock=DockStyle.Fill,FlowDirection=Lang.Rtl?FlowDirection.RightToLeft:FlowDirection.LeftToRight,RightToLeft=RightToLeft.No,BackColor=Color.Transparent,Padding=new Padding(0,12,0,0),WrapContents=false};
+   var actions=new CenteredActionRow();
    var start=new GlassButton{Text=Lang.T("batch.start"),Primary=true,Size=new Size(180,44),DialogResult=DialogResult.OK};
    var cancel=new GlassButton{Text=Lang.T("prompt.cancel"),Size=new Size(120,44),DialogResult=DialogResult.Cancel};
    actions.Controls.Add(start);actions.Controls.Add(cancel);

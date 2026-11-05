@@ -1,0 +1,119 @@
+name: Signed Windows release
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: asan-release-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  test:
+    name: Application and deployment tests
+    runs-on: windows-2022
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+        with:
+          node-version: '22'
+      - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065 # v5
+        with:
+          python-version: '3.13'
+      - name: Build and validate application, UI and updater
+        shell: pwsh
+        run: |
+          ./Build.ps1
+          ./Test.ps1
+          ./TestUpdates.ps1
+      - name: Validate browser extension and website service
+        shell: pwsh
+        run: |
+          node BrowserExtension/test-background.mjs
+          if ($LASTEXITCODE -ne 0) { throw 'Extension tests failed' }
+          node server/test.mjs
+          if ($LASTEXITCODE -ne 0) { throw 'Server tests failed' }
+      - name: Validate release numbering, deployment boundaries and rollback
+        shell: pwsh
+        run: |
+          ./ci/Test-ReleaseVersion.ps1
+          python -m unittest discover -s ci -p 'test_*.py' -v
+          if ($LASTEXITCODE -ne 0) { throw 'Deployment tests failed' }
+
+  package:
+    name: Build publisher-signed package
+    needs: test
+    if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
+    runs-on: windows-2022
+    environment: production
+    timeout-minutes: 10
+    outputs:
+      version: ${{ steps.version.outputs.version }}
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          persist-credentials: false
+      - name: Choose a newer release version
+        id: version
+        shell: pwsh
+        run: |
+          $published = Invoke-RestMethod 'https://downloader.hamtavar.ir/api/public/release' -TimeoutSec 30
+          $version = ./ci/Set-ReleaseVersion.ps1 -PublishedVersion $published.version
+          "version=$version" >> $env:GITHUB_OUTPUT
+      - name: Sign with the existing publisher identity and test the actual package
+        shell: pwsh
+        env:
+          UPDATE_SIGNING_KEY_XML: ${{ secrets.UPDATE_SIGNING_KEY_XML }}
+        run: |
+          if ([string]::IsNullOrWhiteSpace($env:UPDATE_SIGNING_KEY_XML)) { throw 'Publisher signing secret is missing' }
+          ./BuildRelease.ps1
+          ./TestUpdates.ps1
+      - name: Assemble deployment artifact with source provenance
+        shell: pwsh
+        env:
+          SOURCE_COMMIT: ${{ github.sha }}
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        run: ./ci/Package-Release.ps1 -SourceCommit $env:SOURCE_COMMIT -RunUrl $env:RUN_URL
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: signed-release
+          path: ci-output/release/
+          if-no-files-found: error
+          retention-days: 14
+
+  deploy:
+    name: Publish and verify production
+    needs: package
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: read
+      id-token: write
+    environment:
+      name: production
+      url: https://downloader.hamtavar.ir
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          persist-credentials: false
+      - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4
+        with:
+          name: signed-release
+          path: ci-output/release/
+      - name: Deploy using short-lived GitHub OIDC identity
+        run: python3 ci/request_deploy.py
+      - name: Verify public update signature and downloaded executable
+        run: python3 ci/verify_public.py
+      - name: Record deployment
+        env:
+          RELEASE_VERSION: ${{ needs.package.outputs.version }}
+        run: echo "Published and verified signed automatic update $RELEASE_VERSION." >> "$GITHUB_STEP_SUMMARY"

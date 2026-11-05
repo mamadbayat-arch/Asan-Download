@@ -129,9 +129,6 @@ namespace MehrDownload {
    UpdateResponsiveLayout();
    Shown+=(s,e)=>{
     UpdateTarget();
-    Fade(Fdm.Of(dark).Page,255,0,0.45,null);
-    for(int n=0;n<navItems.Count;n++){navItems[n].SetEnterDelay(0.05*n+0.05);navItems[n].AnimateEnter(false);}
-    for(int n=0;n<navItems.Count;n++){navItems[n].SetEnterDelay(0.05*n+0.05);navItems[n].AnimateEnter(true);}
    };
    if(restore)try{link.Text=saved.Url;connections.SetValue(Math.Max(1,Math.Min(16,saved.Connections)));UpdateTarget();ReloadHistory();}catch{settingsError=Lang.T("error.settings");}
    if(settingsError!=null)status.Text=settingsError;
@@ -382,7 +379,7 @@ namespace MehrDownload {
    ApplyLanguage();
   }
   void ApplyLanguage(){
-   SuspendLayout();
+   BeginVisualUpdate();
    try{
    Text=Lang.T("app.name");
    foreach(var entry in localized)entry.Key.Text=Lang.T(entry.Value);
@@ -418,8 +415,7 @@ namespace MehrDownload {
    UpdateTarget();
    RefreshTable();
    RefreshStatusStrip();
-   }finally{ResumeLayout(true);}
-   Invalidate(true);
+   }finally{EndVisualUpdate();}
   }
   void LocalizeSidebar(Control root){foreach(Control c in root.Controls){var item=c as NavItem;if(item!=null){if(item.Tag is string)item.Caption=Lang.T((string)item.Tag);hints.SetToolTip(item,item.Caption);}LocalizeSidebar(c);}}
   void LocalizeMenu(ContextMenuStrip menu,string[] keys){menu.RightToLeft=Lang.Rtl?RightToLeft.Yes:RightToLeft.No;menu.Font=Brand.Font(10);for(int n=0;n<keys.Length;n++)menu.Items[n].Text=Lang.T(keys[n]);}
@@ -442,9 +438,8 @@ namespace MehrDownload {
   }
   void ToggleTheme(){
    dark=!dark;saved.Dark=dark;try{saved.Save(settings);}catch{}
-   PaintTheme(this);
-   Fade(Fdm.Of(dark).Page,85,0,0.18,null);
-   Invalidate(true);
+   BeginVisualUpdate();
+   try{PaintTheme(this);}finally{EndVisualUpdate();}
   }
   void UpdateResponsiveLayout(){
    if(updatingLayout||composerRow==null||toolbarRow==null||sidebarBrand==null)return;
@@ -455,20 +450,22 @@ namespace MehrDownload {
      compactLayout=compact;
      var search=searchField.Parent;var actions=start.Parent;var input=link.Parent;
      toolbarRow.SuspendLayout();composerRow.SuspendLayout();
-     toolbarRow.Controls.Clear();toolbarRow.ColumnStyles.Clear();toolbarRow.RowStyles.Clear();
-     composerRow.Controls.Clear();composerRow.ColumnStyles.Clear();composerRow.RowStyles.Clear();
-     toolbarRow.ColumnCount=compact?4:5;toolbarRow.RowCount=compact?2:1;
-     composerRow.ColumnCount=compact?4:5;composerRow.RowCount=compact?2:1;
+     toolbarRow.ColumnStyles.Clear();toolbarRow.RowStyles.Clear();
+     composerRow.ColumnStyles.Clear();composerRow.RowStyles.Clear();
+     toolbarRow.ColumnCount=5;toolbarRow.RowCount=2;
+     composerRow.ColumnCount=5;composerRow.RowCount=2;
      foreach(int width in compact?new[]{130,130,0,180}:new[]{136,128,0,164,214})toolbarRow.ColumnStyles.Add(new ColumnStyle(width==0?SizeType.Percent:SizeType.Absolute,width==0?100:width));
      foreach(int width in compact?new[]{0,108,100,182}:new[]{0,180,108,100,182})composerRow.ColumnStyles.Add(new ColumnStyle(width==0?SizeType.Percent:SizeType.Absolute,width==0?100:width));
      for(int n=0;n<(compact?2:1);n++){toolbarRow.RowStyles.Add(new RowStyle(SizeType.Percent,compact?50:100));composerRow.RowStyles.Add(new RowStyle(SizeType.Percent,compact?50:100));}
      toolbarRow.SetColumnSpan(search,compact?4:1);
-     toolbarRow.Controls.Add(search,compact?0:2,0);
-     toolbarRow.Controls.Add(filterButton,0,compact?1:0);toolbarRow.Controls.Add(sortButton,1,compact?1:0);
-     toolbarRow.Controls.Add(batchButton,compact?2:3,compact?1:0);toolbarRow.Controls.Add(addButton,compact?3:4,compact?1:0);
-     composerRow.SetColumnSpan(input,compact?3:1);composerRow.Controls.Add(input,0,0);
-     composerRow.Controls.Add(linkSummary,compact?3:1,0);composerRow.Controls.Add(paste,compact?1:2,compact?1:0);
-     composerRow.Controls.Add(connections,compact?2:3,compact?1:0);composerRow.Controls.Add(actions,compact?3:4,compact?1:0);
+     toolbarRow.SetCellPosition(search,new TableLayoutPanelCellPosition(compact?0:2,0));
+     toolbarRow.SetCellPosition(filterButton,new TableLayoutPanelCellPosition(0,compact?1:0));toolbarRow.SetCellPosition(sortButton,new TableLayoutPanelCellPosition(1,compact?1:0));
+     toolbarRow.SetCellPosition(batchButton,new TableLayoutPanelCellPosition(compact?2:3,compact?1:0));toolbarRow.SetCellPosition(addButton,new TableLayoutPanelCellPosition(compact?3:4,compact?1:0));
+     composerRow.SetColumnSpan(input,compact?3:1);composerRow.SetCellPosition(input,new TableLayoutPanelCellPosition(0,0));
+     composerRow.SetCellPosition(linkSummary,new TableLayoutPanelCellPosition(compact?3:1,0));composerRow.SetCellPosition(paste,new TableLayoutPanelCellPosition(compact?1:2,compact?1:0));
+     composerRow.SetCellPosition(connections,new TableLayoutPanelCellPosition(compact?2:3,compact?1:0));composerRow.SetCellPosition(actions,new TableLayoutPanelCellPosition(compact?3:4,compact?1:0));
+     toolbarRow.ColumnCount=compact?4:5;toolbarRow.RowCount=compact?2:1;
+     composerRow.ColumnCount=compact?4:5;composerRow.RowCount=compact?2:1;
      input.Margin=compact?new Padding(0,0,0,6):Padding.Empty;
      linkSummary.Margin=new Padding(0,0,10,compact?6:0);
      composer.RowStyles[0].SizeType=SizeType.Percent;composer.RowStyles[0].Height=100;

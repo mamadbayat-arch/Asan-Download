@@ -448,7 +448,7 @@ namespace MehrDownload {
    get { return item; }
    set { item=value;target=value.Progress;AccessibleName=value.Title+", "+value.StatusText;Ticker.Add(this); }
   }
-  public DownloadRowView(){Height=58;TabStop=true;AccessibleRole=AccessibleRole.ListItem;RightToLeft=RightToLeft.No;DoubleBuffered=true;enter=0;enterTarget=1;AnimateEnter(true);}
+  public DownloadRowView(){Height=58;TabStop=true;AccessibleRole=AccessibleRole.ListItem;RightToLeft=RightToLeft.No;DoubleBuffered=true;}
   protected override void OnMouseEnter(EventArgs e){AnimateHover(true);base.OnMouseEnter(e);}
   protected override void OnMouseLeave(EventArgs e){AnimateHover(false);dotsHover=false;Invalidate();base.OnMouseLeave(e);}
   protected override void OnMouseDown(MouseEventArgs e){
