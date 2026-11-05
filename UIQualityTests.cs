@@ -10,6 +10,12 @@ using MehrDownload;
 class UIQualityTests {
  static int failures,checks;
  static BindingFlags flags=BindingFlags.Instance|BindingFlags.NonPublic;
+ [System.Runtime.InteropServices.DllImport("user32.dll",SetLastError=true)]static extern bool SetWindowPos(IntPtr window,IntPtr after,int x,int y,int width,int height,uint flags);
+ static void SizeForCapture(Form window,Size size){
+  // Form.Size clamps to the runner's physical desktop. Native positioning gives
+  // the bitmap fixture its real requested dimensions without changing the host display.
+  if(!SetWindowPos(window.Handle,IntPtr.Zero,0,0,size.Width,size.Height,0x0016))throw new System.ComponentModel.Win32Exception();
+ }
  static object Field(object owner,string name){return owner.GetType().GetField(name,flags).GetValue(owner);}
  static void Call(object owner,string name,params object[] args){owner.GetType().GetMethod(name,flags).Invoke(owner,args);}
  static void Check(bool value,string text){checks++;Console.WriteLine((value?"PASS: ":"FAIL: ")+text);if(!value)failures++;}
@@ -26,12 +32,9 @@ class UIQualityTests {
   string settings=Path.Combine(root,"session.json");new Saved{English=true,Folder=root}.Save(settings);
   Lang.English=false;
   using(var w=new Window(true,settings)){
-   // Hosted Windows runners have a small desktop. An explicit tracking maximum
-   // lets the off-screen bitmap tests exercise the same desktop sizes everywhere.
-   w.MaximumSize=new Size(1600,1200);
    w.Show();Pump(650);
    var stableInput=(TextBox)Field(w,"link");var inputHandle=stableInput.Handle;
-   for(int resize=0;resize<12;resize++){w.Size=resize%2==0?new Size(960,640):new Size(1280,940);Application.DoEvents();}
+   for(int resize=0;resize<12;resize++){SizeForCapture(w,resize%2==0?new Size(960,640):new Size(1280,940));Application.DoEvents();}
    Check(stableInput.Handle==inputHandle,"responsive breakpoints preserve the native URL input instead of reparenting controls");
    Call(w,"ToggleLanguage");Call(w,"ToggleLanguage");
    bool settled=true;foreach(var control in Tree(w)){var animated=control as AnimatedControl;if(animated!=null&&animated.EnterAmount<0.999)settled=false;}
@@ -85,7 +88,7 @@ class UIQualityTests {
     foreach(bool dark in new[]{false,true}){
      if((bool)Field(w,"dark")!=dark)Call(w,"ToggleTheme");Pump(400);
      foreach(var size in new[]{new Size(1280,940),new Size(1060,760),new Size(960,640)}){
-      w.Size=size;Pump(200);
+      SizeForCapture(w,size);Pump(200);
       string label=(english?"en":"fa")+"-"+(dark?"dark":"light")+"-"+size.Width;
       var link=(TextBox)Field(w,"link");var toggle=(GlassButton)Field(w,"toggleSidebar");
       Check(link.Width>=160&&search.Input.Width>=100,label+": URL and search fields stay usable");
